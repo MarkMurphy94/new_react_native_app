@@ -22,3 +22,7 @@ google-services.json
 
 expo-env.d.ts
 # @end expo-cli
+firebaseConfig.js
+google-services.json
+google-services.json
+GoogleService-Info.plist
