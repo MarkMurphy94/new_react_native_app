@@ -3,8 +3,11 @@ import { View, Text, TextInput, Button, FlatList, TouchableOpacity, ScrollView }
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { launchImageLibrary } from 'expo-image-picker';
+import { collection, addDoc } from 'firebase/firestore'
+import { FIRESTORE } from '@/firebaseConfig';
 
-const CreateExperienceScreen = () => {
+
+const CreateExperienceScreen = ({ navigation }) => {
     const [experienceName, setExperienceName] = useState('');
     const [oneLiner, setOneLiner] = useState('');
     const [description, setDescription] = useState('');
@@ -40,6 +43,21 @@ const CreateExperienceScreen = () => {
         }
     };
 
+    async function addExperience() {
+        try {
+            const docRef = await addDoc(collection(FIRESTORE, "Experiences"), {
+                name: experienceName,
+                oneliner: oneLiner,
+                description: description,
+                events: events,
+                characters: characters
+            });
+            console.log("Document written with ID: ", docRef.id);
+        } catch (e) {
+            console.error("Error adding document: ", e);
+        }
+    }
+
     // Function to handle the drag and drop of events
     const handleDragEnd = ({ data }) => {
         setEvents(data);
@@ -54,100 +72,101 @@ const CreateExperienceScreen = () => {
     };
 
     return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
-            <ScrollView contentContainerStyle={{ padding: 20 }}>
-                <Text>Cover Image</Text>
-                <TouchableOpacity onPress={pickImage} style={{ marginBottom: 10 }}>
-                    <View style={{ borderWidth: 1, height: 150, justifyContent: 'center', alignItems: 'center' }}>
-                        {coverImage ? (
-                            <Image source={{ uri: coverImage }} style={{ width: '100%', height: '100%' }} />
-                        ) : (
-                            <Text>Select a cover image</Text>
-                        )}
-                    </View>
-                </TouchableOpacity>
-                {/* Experience Name */}
-                <Text>Experience Name</Text>
-                <TextInput
-                    value={experienceName}
-                    onChangeText={setExperienceName}
-                    placeholder="Enter experience name"
-                    style={{ borderBottomWidth: 1, marginBottom: 10 }}
-                />
-
-                {/* One/Two-liner */}
-                <Text>Experience One/Two-Liner</Text>
-                <TextInput
-                    value={oneLiner}
-                    onChangeText={setOneLiner}
-                    placeholder="Enter one/two-liner"
-                    style={{ borderBottomWidth: 1, marginBottom: 10 }}
-                />
-
-                {/* Longer Description */}
-                <Text>Experience Longer Description</Text>
-                <TextInput
-                    value={description}
-                    onChangeText={setDescription}
-                    placeholder="Enter longer description"
-                    multiline
-                    numberOfLines={4}
-                    style={{ borderWidth: 1, marginBottom: 10, textAlignVertical: 'top' }}
-                />
-
-                {/* Re-orderable List of Events */}
-                <Text>Events</Text>
-                <DraggableFlatList
-                    data={events}
-                    renderItem={({ item, drag, isActive }) => (
-                        <TouchableOpacity
-                            style={{
-                                padding: 10,
-                                backgroundColor: isActive ? '#ddd' : '#fff',
-                                borderBottomWidth: 1,
-                                borderColor: '#ccc',
-                            }}
-                            onLongPress={drag}
-                        >
-                            <Text>{item.label}</Text>
-                        </TouchableOpacity>
+        <ScrollView style={{ flex: 1 }}>
+            <Text>Cover Image</Text>
+            <TouchableOpacity onPress={pickImage} style={{ marginBottom: 10 }}>
+                <View style={{ borderWidth: 1, height: 150, justifyContent: 'center', alignItems: 'center' }}>
+                    {coverImage ? (
+                        <Image source={{ uri: coverImage }} style={{ width: '100%', height: '100%' }} />
+                    ) : (
+                        <Text>Select a cover image</Text>
                     )}
-                    keyExtractor={(item) => item.key}
-                    onDragEnd={handleDragEnd}
-                    style={{ marginTop: 20, marginBottom: 20 }}
-                />
-                <Button title="Add Event" onPress={addEvent} />
-                <Text>------</Text>
+                </View>
+            </TouchableOpacity>
+            <Text>Experience Name</Text>
+            <TextInput
+                value={experienceName}
+                onChangeText={setExperienceName}
+                placeholder="Enter experience name"
+                style={{ borderBottomWidth: 1, marginBottom: 10 }}
+            />
+
+            <Text>Experience One/Two-Liner</Text>
+            <TextInput
+                value={oneLiner}
+                onChangeText={setOneLiner}
+                placeholder="Enter one/two-liner"
+                style={{ borderBottomWidth: 1, marginBottom: 10 }}
+            />
+
+            <Text>Experience Longer Description</Text>
+            <TextInput
+                value={description}
+                onChangeText={setDescription}
+                placeholder="Enter longer description"
+                multiline
+                numberOfLines={4}
+                style={{ borderWidth: 1, marginBottom: 10, textAlignVertical: 'top' }}
+            />
+
+            {/* Re-orderable List of Events */}
+            <Text>Events</Text>
+            <DraggableFlatList
+                scrollEnabled={false}
+                data={events}
+                renderItem={({ item, drag, isActive }) => (
+                    <TouchableOpacity
+                        style={{
+                            padding: 10,
+                            backgroundColor: isActive ? '#ddd' : '#fff',
+                            borderBottomWidth: 1,
+                            borderColor: '#ccc',
+                        }}
+                        onLongPress={drag}
+                    >
+                        <Text>{item.label}</Text>
+                    </TouchableOpacity>
+                )}
+                keyExtractor={(item) => item.key}
+                onDragEnd={handleDragEnd}
+                style={{ marginTop: 20, marginBottom: 20 }}
+            />
+            <Button title="Add Event" onPress={() =>
+                navigation.navigate('event_creation', { name: 'New Event' })
+            } />
+            <Text>------</Text>
 
 
-                {/* Characters List */}
-                <Text>Characters in this Experience</Text>
-                <FlatList
-                    data={characters}
-                    renderItem={({ item }) => (
-                        <TouchableOpacity
-                            style={{
-                                padding: 10,
-                                backgroundColor: item.selected ? '#ddd' : '#fff',
-                                borderWidth: 1,
-                                marginBottom: 10,
-                            }}
-                            onPress={() => toggleCharacterSelection(item.id)}
-                        >
-                            <Text>{item.name}</Text>
-                        </TouchableOpacity>
-                    )}
-                    keyExtractor={(item) => item.id.toString()}
-                />
-                <Button title="Add Character" onPress={addEvent} />
-                <Text>------</Text>
+            <Text>Characters in this Experience</Text>
+            <FlatList
+                scrollEnabled={false}
+                data={characters}
+                renderItem={({ item }) => (
+                    <TouchableOpacity
+                        style={{
+                            padding: 10,
+                            backgroundColor: item.selected ? '#ddd' : '#fff',
+                            borderWidth: 1,
+                            marginBottom: 10,
+                        }}
+                        onPress={() => toggleCharacterSelection(item.id)}
+                    >
+                        <Text>{item.name}</Text>
+                    </TouchableOpacity>
+                )}
+                keyExtractor={(item) => item.id.toString()}
+            />
+            <Button title="Add Character" onPress={addEvent} />
+            <Text>------</Text>
 
-                {/* Go to Map View Button */}
-                <Button title="Go to map view" onPress={() => console.log('Go to map view')} />
-                {/* <Button title="Save Experience" onPress={addExperience} /> */}
-            </ScrollView>
-        </GestureHandlerRootView>
+            <Button title="Go to map view" onPress={() => console.log('Go to map view')} />
+            <Text>------</Text>
+            <Button title="Save Experience" onPress={addExperience} />
+        </ScrollView>
     );
 };
 
 export default CreateExperienceScreen;
+
+
+//com.imers.io

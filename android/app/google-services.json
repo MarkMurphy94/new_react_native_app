@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "28474693756",
+    "project_id": "immersion-react-native",
+    "storage_bucket": "immersion-react-native.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:28474693756:android:ac18c4e7880856fbf891f9",
+        "android_client_info": {
+          "package_name": "com.imers.io"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdoLPdHWmrfhedeQktVxgEYZ4Qh2s2IvA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

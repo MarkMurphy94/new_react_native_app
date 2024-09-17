@@ -3,7 +3,7 @@ import { View, Text, TextInput, Button, TouchableOpacity, FlatList } from 'react
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-const CreateEventScreen = () => {
+const CreateEventScreen = ({ navigation }) => {
     const [eventName, setEventName] = useState('');
     const [playerObjective, setplayerObjective] = useState('');
     const [listItems, setListItems] = useState([]);

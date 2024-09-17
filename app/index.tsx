@@ -1,19 +1,60 @@
-import { Text, View } from 'react-native'
-import React from 'react'
-import { Link } from 'expo-router'
-import { StatusBar } from 'expo-status-bar'
+import { Text, ScrollView } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { FIREBASE_AUTH } from '@/firebaseConfig';
+import { createStackNavigator } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
+import createEvent from './event_creation'
+import createCharacter from './character_creation'
+import createExperience from './experience_creation'
+
+const Stack = createStackNavigator();
+
+function DetailsStackNavigator() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="Create Experience" component={createExperience} />
+      <Stack.Screen name="Add Character" component={createCharacter} />
+      <Stack.Screen name="Add Event" component={createEvent} />
+    </Stack.Navigator>
+  );
+}
 
 const RootLayout = () => {
+  const navigation = useNavigation();
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null)
+  const [experience, setExperience] = useState()
+
+  const getExperienceData = async () => {
+    const experiencesCollection = await firestore().collection("Experiences").get()
+    setExperience(experiencesCollection.docs[0].data())  // ignore red lines i guess
+  }
+  useEffect(() => {
+    onAuthStateChanged(FIREBASE_AUTH, (user) => {
+      setUser(user)
+    })
+  })
+
   return (
-    <View className="flex-1 items-center justify-center bg-white">
-      <Text className='text-3xl font-pblack'>wee</Text>
-      <StatusBar style="auto" />
-      <Link href="/home">Go to home</Link>
-      <Link href="/event_creation">Go to event creation</Link>
-      <Link href="/experience_creation">Go to experience creation</Link>
-      <Link href="/character_creation">Go to character creation</Link>
-    </View>
+    <ScrollView style={{ flex: 1 }}>
+      <Text>weeeeeeeeeeeeeee</Text>
+    </ScrollView>
   )
-}
+
+  // return (
+  //   <NavigationContainer>
+  //     <Drawer.Navigator initialRouteName="Login">
+  //       {user ? (
+  //         <Drawer.Screen name="Login" component={profile} options={{ headerShown: false }} />
+  //       ) : (
+  //         <Drawer.Screen name="Login" component={login} options={{ headerShown: false }} />
+  //       )}
+  //     </Drawer.Navigator>
+  //   </NavigationContainer>
+  // )
+};
+
+
 
 export default RootLayout
