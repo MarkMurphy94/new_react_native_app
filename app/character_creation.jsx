@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Text, TextInput, ScrollView, View, Image, SafeAreaView, Button } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useNavigation } from '@react-navigation/native';
 
-
-const CreateCharacterScreen = ({ navigation }) => {
+const CreateCharacterScreen = () => {
+    const navigation = useNavigation();
     const [characterName, setcharacterName] = useState('');
     const [briefDescription, setBriefDescription] = useState('');
     const [description, setDescription] = useState('');

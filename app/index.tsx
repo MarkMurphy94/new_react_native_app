@@ -1,24 +1,8 @@
-import { Text, ScrollView } from 'react-native'
+import { Text, ScrollView, Button } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { FIREBASE_AUTH } from '@/firebaseConfig';
-import { createStackNavigator } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
-import createEvent from './event_creation'
-import createCharacter from './character_creation'
-import createExperience from './experience_creation'
-
-const Stack = createStackNavigator();
-
-function DetailsStackNavigator() {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen name="Create Experience" component={createExperience} />
-      <Stack.Screen name="Add Character" component={createCharacter} />
-      <Stack.Screen name="Add Event" component={createEvent} />
-    </Stack.Navigator>
-  );
-}
 
 const RootLayout = () => {
   const navigation = useNavigation();
@@ -30,6 +14,7 @@ const RootLayout = () => {
     const experiencesCollection = await firestore().collection("Experiences").get()
     setExperience(experiencesCollection.docs[0].data())  // ignore red lines i guess
   }
+
   useEffect(() => {
     onAuthStateChanged(FIREBASE_AUTH, (user) => {
       setUser(user)
@@ -39,6 +24,7 @@ const RootLayout = () => {
   return (
     <ScrollView style={{ flex: 1 }}>
       <Text>weeeeeeeeeeeeeee</Text>
+      <Button title="Create Experience" onPress={() => navigation.navigate('experience_creation')} />
     </ScrollView>
   )
 

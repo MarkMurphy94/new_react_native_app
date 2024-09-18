@@ -1,23 +1,56 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity, FlatList } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, TouchableOpacity, PermissionsAndroid, Platform, Alert, ActivityIndicator } from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useNavigation } from '@react-navigation/native';
+import MapView from 'react-native-maps';
+import * as Location from 'expo-location';
 
-const CreateEventScreen = ({ navigation }) => {
+const CreateEventScreen = () => {
+    const navigation = useNavigation();
     const [eventName, setEventName] = useState('');
     const [playerObjective, setplayerObjective] = useState('');
     const [listItems, setListItems] = useState([]);
     const [newItem, setNewItem] = useState('');
+    const [searchText, setSearchText] = useState('')
+    const [errorMsg, setErrorMsg] = useState('')
+    const [location, setLocation] = useState(null)
 
-    // Function to add a new item to the list
-    const addItem = () => {
-        if (newItem.trim()) {
-            setListItems([...listItems, { key: newItem, label: newItem }]);
-            setNewItem(''); // Clear the input field
+    useEffect(() => {
+        (async () => {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                setErrorMsg('Permission to access location was denied');
+                return;
+            }
+            let location = await Location.getCurrentPositionAsync({});
+            setLocation(location);
+        })();
+    }, []);
+
+    let text = 'Waiting..';
+    if (errorMsg) {
+        text = errorMsg;
+        console.log(text)
+    } else if (location) {
+        text = JSON.stringify(location);
+    }
+
+    const searchPlaces = () => {
+        if (!searchText.trim().length) return
+        const googleAPIUrl = "https://maps.gooogleapis.com/maps/api/place/textsearch/json"
+        const input = searchText.trim()
+        const location = `${INITIAL_LAT},${INITIAL_LONG}&radius=200000`
+        const url = `${googleAPIUrl}?query=${input}&location=${location}&key=GET A KEY`
+        try {
+            const resp = fetch(url)
+            const json = resp.json
+            console.log(json)
+        } catch (e) {
+            console.log(e)
         }
-    };
+    }
 
-    // Function to handle reordering items
     const handleDragEnd = ({ data }) => {
         setListItems(data);
     };
@@ -41,8 +74,6 @@ const CreateEventScreen = ({ navigation }) => {
                     style={{ borderBottomWidth: 1, marginBottom: 10 }}
                 />
 
-                {/* <Button title="Add Item" onPress={addItem} /> */}
-
                 <Text>Characters in this event</Text>
                 <DraggableFlatList
                     data={listItems}
@@ -63,6 +94,15 @@ const CreateEventScreen = ({ navigation }) => {
                     onDragEnd={handleDragEnd}
                     style={{ marginTop: 20 }}
                 />
+                <Text>Select a location for this event or search for an address</Text>
+                <TextInput onChangeText={setSearchText} autoCapitalize='sentences' style={{ borderBottomWidth: 1, marginBottom: 10 }} />
+                <Button onPress={searchPlaces} title="search location" />
+                <Text>                   </Text>
+                <MapView
+                    style={{ width: '100%', height: '30%' }}
+                    region={location}
+                    showsUserLocation={true} //TODO: probably don't need to show this here
+                />
             </View>
         </GestureHandlerRootView>
 
@@ -70,3 +110,7 @@ const CreateEventScreen = ({ navigation }) => {
 };
 
 export default CreateEventScreen;
+
+
+// google maps api key
+// AIzaSyD6IBRKyLKM8rzH-i4HxuWpZ0u9-NryN-8

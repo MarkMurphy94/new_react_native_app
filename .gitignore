@@ -26,3 +26,4 @@ firebaseConfig.js
 google-services.json
 google-services.json
 GoogleService-Info.plist
+android/app/src/main/AndroidManifest.xml

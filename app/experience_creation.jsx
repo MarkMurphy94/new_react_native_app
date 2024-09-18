@@ -5,9 +5,11 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { launchImageLibrary } from 'expo-image-picker';
 import { collection, addDoc } from 'firebase/firestore'
 import { FIRESTORE } from '@/firebaseConfig';
+import { useNavigation } from '@react-navigation/native';
 
 
-const CreateExperienceScreen = ({ navigation }) => {
+const CreateExperienceScreen = () => {
+    const navigation = useNavigation();
     const [experienceName, setExperienceName] = useState('');
     const [oneLiner, setOneLiner] = useState('');
     const [description, setDescription] = useState('');
@@ -72,7 +74,7 @@ const CreateExperienceScreen = ({ navigation }) => {
     };
 
     return (
-        <ScrollView style={{ flex: 1 }}>
+        <ScrollView style={{ flex: 1, padding: 20 }}>
             <Text>Cover Image</Text>
             <TouchableOpacity onPress={pickImage} style={{ marginBottom: 10 }}>
                 <View style={{ borderWidth: 1, height: 150, justifyContent: 'center', alignItems: 'center' }}>
