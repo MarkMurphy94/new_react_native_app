@@ -112,5 +112,3 @@ const CreateEventScreen = () => {
 export default CreateEventScreen;
 
 
-// google maps api key
-// AIzaSyD6IBRKyLKM8rzH-i4HxuWpZ0u9-NryN-8
