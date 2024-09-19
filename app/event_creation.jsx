@@ -11,9 +11,9 @@ const CreateEventScreen = () => {
     const [eventName, setEventName] = useState('');
     const [playerObjective, setplayerObjective] = useState('');
     const [listItems, setListItems] = useState([]);
-    const [newItem, setNewItem] = useState('');
     const [searchText, setSearchText] = useState('')
     const [errorMsg, setErrorMsg] = useState('')
+    const [selection, setSelection] = useState(null)
     const [location, setLocation] = useState(null)
 
     useEffect(() => {
@@ -36,12 +36,21 @@ const CreateEventScreen = () => {
         text = JSON.stringify(location);
     }
 
+    const handleMapPress = e => {
+        setSelection(e.nativeEvent.coordinate);
+    }
+
+    const handleSetLocation = e => {
+        setLocation(selection);
+        console.log(location)
+    }
+
     const searchPlaces = () => {
         if (!searchText.trim().length) return
         const googleAPIUrl = "https://maps.gooogleapis.com/maps/api/place/textsearch/json"
         const input = searchText.trim()
         const location = `${INITIAL_LAT},${INITIAL_LONG}&radius=200000`
-        const url = `${googleAPIUrl}?query=${input}&location=${location}&key=GET A KEY`
+        const url = `${googleAPIUrl}?query=${input}&location=${location}&key=${key}`
         try {
             const resp = fetch(url)
             const json = resp.json
@@ -99,10 +108,13 @@ const CreateEventScreen = () => {
                 <Button onPress={searchPlaces} title="search location" />
                 <Text>                   </Text>
                 <MapView
-                    style={{ width: '100%', height: '30%' }}
+                    style={{ width: '100%', height: '50%' }}
                     region={location}
-                    showsUserLocation={true} //TODO: probably don't need to show this here
+                    onPress={handleMapPress}
+                    showsUserLocation={true} //TODO: probably don't need to show this here?
                 />
+                <Text>                   </Text>
+                <Button title='Set Location' onPress={handleSetLocation} style={{ display: selection ? 'inline' : 'none' }} />
             </View>
         </GestureHandlerRootView>
 
