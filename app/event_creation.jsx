@@ -20,6 +20,8 @@ const CreateEventScreen = () => {
     const [location, setLocation] = useState(null)
     const [userLocation, setUserLocation] = useState(null)
     const [results, setResults] = useState([])
+    const [placeId, setPlaceId] = useState('')
+    const [marker, setMarker] = useState([]);
     const map = useRef('')
 
     useEffect(() => {
@@ -88,9 +90,48 @@ const CreateEventScreen = () => {
         setListItems(data);
     };
 
+    const addItemToList = () => {
+        setListItems(prevItems => [
+            ...prevItems,
+            { key: `${prevItems.length + 1}`, label: `Item ${prevItems.length + 1}` }
+        ]);
+    };
+
+    const onPlaceSelected = async (data, details) => {
+        try {
+            const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${data.place_id}&key=${MAPS_API_KEY}`;
+            const resp = await fetch(url)
+            const resp_json = await resp.json()
+            if (resp_json.result) {
+                const coords = resp_json.result
+                const newMarker = {
+                    latitude: coords.geometry.location.lat,
+                    longitude: coords.geometry.location.lng,
+                    title: coords.name,
+                    address: coords.formatted_address
+                }
+                setMarker([newMarker]);
+                map.current?.animateToRegion({
+                    latitude: coords.geometry.location.lat,
+                    longitude: coords.geometry.location.lng,
+                    latitudeDelta: 0.05,
+                    longitudeDelta: 0.05
+                });
+                // TODO: show callout bubble with place name, address and button to "Set Event Location"
+            }
+        } catch (e) {
+            console.log(e)
+        }
+    }
+
+    const renderItem = ({ item, drag, isActive }) => (
+        <View style={[styles.listItem, isActive && styles.activeItem]}>
+            <Text onLongPress={drag}>{item.label}</Text>
+        </View>
+    );
+
     return (
-        <GestureHandlerRootView style={{ flex: 1, position: 'absolute', padding: 10 }}>
-            <View style={{ padding: 20, }}>
+        <View style={styles.container}>
                 <Text>Event Description</Text>
                 <TextInput
                     value={eventName}
@@ -98,7 +139,6 @@ const CreateEventScreen = () => {
                     placeholder="Enter a brief description of this event"
                     style={{ borderBottomWidth: 1, marginBottom: 10 }}
                 />
-
                 <Text>Player Objective</Text>
                 <TextInput
                     value={playerObjective}
@@ -106,7 +146,6 @@ const CreateEventScreen = () => {
                     placeholder="Enter an objective for the player"
                     style={{ borderBottomWidth: 1, marginBottom: 10 }}
                 />
-
                 <Text>Characters in this event</Text>
                 <DraggableFlatList
                     data={listItems}
@@ -127,8 +166,8 @@ const CreateEventScreen = () => {
                     onDragEnd={handleDragEnd}
                     style={{ marginTop: 20 }}
                 />
-                <Text>Select a location for this event or search for an address</Text>
-                {/* <TextInput onChangeText={setSearchText} autoCapitalize='sentences' style={{ borderBottomWidth: 1, marginBottom: 10 }} /> */}
+            <Button title='Add Character' style={{ display: selection ? 'inline' : 'none' }} />
+            <View style={styles.autocompleteContainer}>
                 <GooglePlacesAutocomplete
                     placeholder="Search"
                     onPress={(data, details = null) => {
@@ -140,26 +179,25 @@ const CreateEventScreen = () => {
                         key: MAPS_API_KEY,
                         language: "en",
                     }}
+                    onPress={onPlaceSelected}
                     styles={{
                         textInput: isFocused ? styles.textInputFocused : styles.textInput,
                         container: styles.inputContainer,
                     }}
                     textInputProps={{
+                        // value: searchText,
                         onFocus: () => setIsFocused(true),
                         onBlur: () => setIsFocused(false),
                     }}
                 />
-                <Text>                   </Text>
-                <Button onPress={searchPlaces} title="search location" />
-                <Text>                   </Text>
+            </View>
                 <MapView
                     ref={map}
                     style={{ width: '100%', height: '50%' }}
                     provider={PROVIDER_GOOGLE}
                     region={userLocation}
                     onPress={handleMapPress}
-                    showsUserLocation={true} //TODO: probably don't need to show this here?
-                >
+                showsUserLocation={true}>
                     {results.length ? results.map((item, i) => {
                         const coord = {
                             latitude: item.geometry.location.lat,
@@ -173,57 +211,72 @@ const CreateEventScreen = () => {
                             />
                         )
                     }) : null}
+                {marker.map((marker, index) => (
+                    <Marker
+                        key={index}
+                        coordinate={{
+                            latitude: marker.latitude,
+                            longitude: marker.longitude
+                        }}
+                        title={marker.title}
+                    >
+                        <Callout>
+                            <View>
+                                <Text>{marker.name}</Text>
+                                <Text>{marker.address}</Text>
+                            </View>
+                        </Callout>
+                    </Marker>
+                ))}
                 </MapView>
-                <Text>                   </Text>
-                <Button title='Set Location' onPress={handleSetLocation} style={{ display: selection ? 'inline' : 'none' }} />
             </View>
-        </GestureHandlerRootView>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: "darkblue",
-        paddingTop: 60,
-        paddingBottom: 25,
-        alignItems: "center",
-        borderBottomLeftRadius: 55,
-        borderBottomRightRadius: 55,
-        position: "absolute",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 5,
-        marginBottom: 50,
+        flex: 1,
+        padding: 10,
+        // backgroundColor: "darkblue",
+        // paddingTop: 60,
+        // paddingBottom: 25,
+        // alignItems: "center",
+        // borderBottomLeftRadius: 55,
+        // borderBottomRightRadius: 55,
+        // position: "absolute",
+        // // shadowColor: "#000",
+        // shadowOffset: { width: 0, height: 2 },
+        // shadowOpacity: 0.1,
+        // shadowRadius: 10,
+        // elevation: 5,
+        // marginBottom: 50,
     },
-    textInput: {
+    input: {
         borderWidth: 1,
-        borderColor: "#ccc",
-        height: 50,
-        borderRadius: 25,
-        paddingLeft: 25,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 2,
+        padding: 10,
+        marginVertical: 5,
+        borderRadius: 5,
     },
-    inputContainer: {
-        width: "95%",
+    listItem: {
+        padding: 15,
+        marginVertical: 5,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 5,
     },
-    textInputFocused: {
-        borderWidth: 1,
-        borderColor: "darkblue",
-        height: 50,
-        borderRadius: 25,
-        paddingLeft: 25,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 2,
+    activeItem: {
+        backgroundColor: '#ccc',
     },
+    autocompleteContainer: {
+        position: 'absolute',
+        top: 120,  // Adjust based on screen size and placement
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+    },
+    map: {
+        flex: 1,
+        marginTop: 20,
+    }
 });
 
 export default CreateEventScreen;
