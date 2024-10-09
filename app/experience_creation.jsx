@@ -1,21 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Button, FlatList, TouchableOpacity, ScrollView } from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { launchImageLibrary } from 'expo-image-picker';
 import { collection, addDoc } from 'firebase/firestore'
 import { FIRESTORE } from '@/firebaseConfig';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 
 const CreateExperienceScreen = () => {
     const navigation = useNavigation();
+    const route = useRoute()
     const [experienceName, setExperienceName] = useState('');
     const [oneLiner, setOneLiner] = useState('');
     const [description, setDescription] = useState('');
     const [coverImage, setCoverImage] = useState(null);
     const [events, setEvents] = useState([]);
-    const [newEvent, setNewEvent] = useState('');
     const [characters, setCharacters] = useState([
         { id: 1, name: 'Character 1', selected: false },
         { id: 2, name: 'Character 2', selected: false },
@@ -36,13 +37,11 @@ const CreateExperienceScreen = () => {
             }
         });
     };
+    // console.log(route.params)
 
     // Function to add an event to the reorderable list
-    const addEvent = () => {
-        if (newEvent.trim()) {
-            setEvents([...events, { key: newEvent, label: newEvent }]);
-            setNewEvent('');
-        }
+    const addEvent = (event) => {
+        setEvents(new_events => [...new_events, event])
     };
 
     async function addExperience() {
@@ -60,6 +59,26 @@ const CreateExperienceScreen = () => {
         }
     }
 
+    useEffect(() => {
+        if (route.params) {  // TODO: specify if coming from event creation or character creation
+            addEvent(route.params)
+        }
+        console.log(events)
+    }, [route.params])
+
+    useEffect(() => {
+        navigation.setOptions({
+            headerLeft: () => (
+                <Ionicons
+                    name="arrow-back"
+                    size={24}
+                    color="black"
+                    onPress={() => navigation.goBack()}
+                />
+            ),
+        });
+    }, [navigation])
+
     // Function to handle the drag and drop of events
     const handleDragEnd = ({ data }) => {
         setEvents(data);
@@ -74,7 +93,7 @@ const CreateExperienceScreen = () => {
     };
 
     return (
-        <ScrollView style={{ flex: 1, padding: 20 }}>
+        <ScrollView style={{ flex: 1, padding: 10, }}>
             <Text>Cover Image</Text>
             <TouchableOpacity onPress={pickImage} style={{ marginBottom: 10 }}>
                 <View style={{ borderWidth: 1, height: 150, justifyContent: 'center', alignItems: 'center' }}>
@@ -125,8 +144,9 @@ const CreateExperienceScreen = () => {
                             borderColor: '#ccc',
                         }}
                         onLongPress={drag}
+                        onPress={() => navigation.navigate('event_creation', { item })}
                     >
-                        <Text>{item.label}</Text>
+                        <Text>{item.eventName}</Text>
                     </TouchableOpacity>
                 )}
                 keyExtractor={(item) => item.key}
@@ -137,8 +157,6 @@ const CreateExperienceScreen = () => {
                 navigation.navigate('event_creation', { name: 'New Event' })
             } />
             <Text>------</Text>
-
-
             <Text>Characters in this Experience</Text>
             <FlatList
                 scrollEnabled={false}
@@ -160,10 +178,10 @@ const CreateExperienceScreen = () => {
             />
             <Button title="Add Character" onPress={addEvent} />
             <Text>------</Text>
-
             <Button title="Go to map view" onPress={() => console.log('Go to map view')} />
             <Text>------</Text>
             <Button title="Save Experience" onPress={addExperience} />
+            <Text>------</Text>
         </ScrollView>
     );
 };

@@ -1,40 +1,70 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Text, TextInput, Button, ImageBackground, TouchableOpacity, Keyboard, Dimensions } from 'react-native';
+import { View, StyleSheet, Text, TextInput, Button, ImageBackground, TouchableOpacity, Keyboard, KeyboardAvoidingView, Dimensions } from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
-import { useNavigation } from '@react-navigation/native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import * as Location from 'expo-location';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
+import * as expoLocation from 'expo-location';
+import { Ionicons } from '@expo/vector-icons';
+
+const { width, height } = Dimensions.get("window")
+const ASPECT_RATIO = width / height
+const LATITUDE_DELTA = 0.02
+const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO
 
 const CreateEventScreen = () => {
+    const route = useRoute();
     const navigation = useNavigation();
     const [eventName, setEventName] = useState('');
     const [playerObjective, setplayerObjective] = useState('');
-    const [listItems, setListItems] = useState([]);
+    const [characterList, setCharacterList] = useState([
+        { id: 1, name: 'Character 1', selected: false },
+        { id: 2, name: 'Character 2', selected: false },
+        { id: 3, name: 'Character 3', selected: false }
+    ]);
     const [isFocused, setIsFocused] = useState(false);
-    const [Address, setAddress] = useState("");
     const [searchText, setSearchText] = useState('')
     const [errorMsg, setErrorMsg] = useState('')
     const [selection, setSelection] = useState(null)
     const [location, setLocation] = useState(null)
     const [userLocation, setUserLocation] = useState(null)
     const [results, setResults] = useState([])
-    const [placeId, setPlaceId] = useState('')
     const [marker, setMarker] = useState([]);
     const map = useRef('')
 
     useEffect(() => {
         (async () => {
-            let { status } = await Location.requestForegroundPermissionsAsync();
+            let { status } = await expoLocation.requestForegroundPermissionsAsync();
             if (status !== 'granted') {
                 setErrorMsg('Permission to access location was denied');
                 return;
             }
-            let new_location = await Location.getCurrentPositionAsync({});
+            let new_location = await expoLocation.getCurrentPositionAsync({});
             setUserLocation(new_location);
-        })();
+        })
+        navigation.setOptions({
+            headerLeft: () => (
+                <Ionicons
+                    name="arrow-back"
+                    size={24}
+                    color="black"
+                    onPress={() => navigation.navigate('experience_creation')}  // Navigates back to the previous screen
+                />
+            ),
+        });
     }, []);
+
+    useEffect(() => {
+        if (route.params) {  // TODO: specify if coming from event creation or character creation
+            event_data = route.params
+            setEventName(event_data.eventName)
+            setplayerObjective(event_data.playerObjective)
+            setCharacterList(event_data.characterList)
+            setLocation(event_data.eventLocation)
+        }
+        console.log(route.params)
+    }, [route.params])
 
     let text = 'Waiting..';
     if (errorMsg) {
@@ -45,8 +75,8 @@ const CreateEventScreen = () => {
         setSelection(e.nativeEvent.coordinate);
     }
 
-    const handleSetLocation = e => {
-        setLocation(selection);
+    const handleSetLocation = () => {
+        setLocation(marker);
     }
 
     const searchPlaces = async () => {
@@ -87,11 +117,11 @@ const CreateEventScreen = () => {
     }
 
     const handleDragEnd = ({ data }) => {
-        setListItems(data);
+        setCharacterList(data);
     };
 
     const addItemToList = () => {
-        setListItems(prevItems => [
+        setCharacterList(prevItems => [
             ...prevItems,
             { key: `${prevItems.length + 1}`, label: `Item ${prevItems.length + 1}` }
         ]);
@@ -107,7 +137,7 @@ const CreateEventScreen = () => {
                 const newMarker = {
                     latitude: coords.geometry.location.lat,
                     longitude: coords.geometry.location.lng,
-                    title: coords.name,
+                    locationName: coords.name,
                     address: coords.formatted_address
                 }
                 setMarker([newMarker]);
@@ -131,24 +161,25 @@ const CreateEventScreen = () => {
     );
 
     return (
-        <View style={styles.container}>
-                <Text>Event Description</Text>
-                <TextInput
-                    value={eventName}
-                    onChangeText={setEventName}
-                    placeholder="Enter a brief description of this event"
-                    style={{ borderBottomWidth: 1, marginBottom: 10 }}
-                />
-                <Text>Player Objective</Text>
-                <TextInput
-                    value={playerObjective}
-                    onChangeText={setplayerObjective}
-                    placeholder="Enter an objective for the player"
-                    style={{ borderBottomWidth: 1, marginBottom: 10 }}
-                />
-                <Text>Characters in this event</Text>
+        <KeyboardAvoidingView style={styles.container} behavior='padding'>
+            <Text>Event Description</Text>
+            <TextInput
+                value={eventName}
+                onChangeText={setEventName}
+                placeholder="Enter a brief description of this event"
+                style={{ borderBottomWidth: 1, marginBottom: 10 }}
+            />
+            <Text>Player Objective</Text>
+            <TextInput
+                value={playerObjective}
+                onChangeText={setplayerObjective}
+                placeholder="Enter an objective for the player"
+                style={{ borderBottomWidth: 1, marginBottom: 10 }}
+            />
+            <Text>Characters in this event</Text>
+            <View style={styles.listContainer}>
                 <DraggableFlatList
-                    data={listItems}
+                    data={characterList}
                     renderItem={({ item, drag, isActive }) => (
                         <TouchableOpacity
                             style={{
@@ -166,51 +197,30 @@ const CreateEventScreen = () => {
                     onDragEnd={handleDragEnd}
                     style={{ marginTop: 20 }}
                 />
-            <Button title='Add Character' style={{ display: selection ? 'inline' : 'none' }} />
-            <View style={styles.autocompleteContainer}>
-                <GooglePlacesAutocomplete
-                    placeholder="Search"
-                    onPress={(data, details = null) => {
-                        setAddress(details.description);
-                        console.log(details.description);
-                        console.log("Comming from Address UseState: ", Address)
-                    }}
-                    query={{
-                        key: MAPS_API_KEY,
-                        language: "en",
-                    }}
-                    onPress={onPlaceSelected}
-                    styles={{
-                        textInput: isFocused ? styles.textInputFocused : styles.textInput,
-                        container: styles.inputContainer,
-                    }}
-                    textInputProps={{
-                        // value: searchText,
-                        onFocus: () => setIsFocused(true),
-                        onBlur: () => setIsFocused(false),
-                    }}
-                />
+                <Button title='Add Character' style={{ display: selection ? 'inline' : 'none' }} onPress={addItemToList} />
+                {/* Add Character button should open a list of characters created in the previous screen, including an option to create one from this screen */}
             </View>
-                <MapView
-                    ref={map}
-                    style={{ width: '100%', height: '50%' }}
-                    provider={PROVIDER_GOOGLE}
-                    region={userLocation}
-                    onPress={handleMapPress}
+
+            <MapView
+                ref={map}
+                style={{ width: '100%', height: '50%', borderBottomWidth: 1, marginTop: 1, flex: 1 }}
+                provider={PROVIDER_GOOGLE}
+                region={userLocation}
+                onPress={handleMapPress}
                 showsUserLocation={true}>
-                    {results.length ? results.map((item, i) => {
-                        const coord = {
-                            latitude: item.geometry.location.lat,
-                            longitude: item.geometry.location.lng,
-                        }
-                        return (
-                            <Marker
-                                key={`search-item-${i}`}
-                                coordinate={coord}
-                                title={item.name}
-                            />
-                        )
-                    }) : null}
+                {results.length ? results.map((item, i) => {
+                    const coord = {
+                        latitude: item.geometry.location.lat,
+                        longitude: item.geometry.location.lng,
+                    }
+                    return (
+                        <Marker
+                            key={`search-item-${i}`}
+                            coordinate={coord}
+                            title={item.name}
+                        />
+                    )
+                }) : null}
                 {marker.map((marker, index) => (
                     <Marker
                         key={index}
@@ -228,8 +238,37 @@ const CreateEventScreen = () => {
                         </Callout>
                     </Marker>
                 ))}
-                </MapView>
+            </MapView>
+            <View style={styles.container} behavior='padding'>
+                <View style={styles.autocompleteContainer}>
+                    <GooglePlacesAutocomplete
+                        placeholder="Search"
+                        query={{
+                            key: MAPS_API_KEY,
+                            language: "en",
+                        }}
+                        onPress={onPlaceSelected}
+                        styles={{
+                            textInput: isFocused ? styles.textInputFocused : styles.textInput,
+                            container: styles.inputContainer,
+                        }}
+                        textInputProps={{
+                            // value: searchText,
+                            onFocus: () => setIsFocused(true),
+                            onBlur: () => setIsFocused(false),
+                        }}
+                    />
+                    <Button title='Set Location' style={{ display: selection ? 'inline' : 'none' }} onPress={handleSetLocation} />
+                </View>
             </View>
+            <Button title='Add Event' onPress={() => navigation.navigate("experience_creation", {
+                eventName: eventName,
+                playerObjective: playerObjective,
+                characterList: characterList,
+                eventLocation: location,
+
+            })} />
+        </KeyboardAvoidingView>
     );
 };
 
@@ -251,11 +290,20 @@ const styles = StyleSheet.create({
         // elevation: 5,
         // marginBottom: 50,
     },
+    scrollContainer: {
+        flexGrow: 1,
+        padding: 10,
+    },
     input: {
         borderWidth: 1,
         padding: 10,
         marginVertical: 5,
         borderRadius: 5,
+    },
+    listContainer: {
+        flexGrow: 0, // Ensure the list resizes dynamically
+        marginVertical: 10,
+        padding: 10
     },
     listItem: {
         padding: 15,
@@ -268,10 +316,11 @@ const styles = StyleSheet.create({
     },
     autocompleteContainer: {
         position: 'absolute',
-        top: 120,  // Adjust based on screen size and placement
+        top: 0,  // Adjust based on screen size and placement
         left: 0,
         right: 0,
-        zIndex: 1000,
+        flex: 1
+        // zIndex: 1000,
     },
     map: {
         flex: 1,
