@@ -37,10 +37,10 @@ const CreateExperienceScreen = () => {
             }
         });
     };
-    // console.log(route.params)
 
     // Function to add an event to the reorderable list
     const addEvent = (event) => {
+        // determine here if edited event or new event?
         setEvents(new_events => [...new_events, event])
     };
 
@@ -63,7 +63,7 @@ const CreateExperienceScreen = () => {
         if (route.params) {  // TODO: specify if coming from event creation or character creation
             addEvent(route.params)
         }
-        console.log(events)
+        console.log("events: ", events)
     }, [route.params])
 
     useEffect(() => {
@@ -135,6 +135,9 @@ const CreateExperienceScreen = () => {
             <DraggableFlatList
                 scrollEnabled={false}
                 data={events}
+                keyExtractor={(item, index) => index.toString()}
+                onDragEnd={handleDragEnd}
+                style={{ marginTop: 20, marginBottom: 20 }}
                 renderItem={({ item, drag, isActive }) => (
                     <TouchableOpacity
                         style={{
@@ -144,17 +147,17 @@ const CreateExperienceScreen = () => {
                             borderColor: '#ccc',
                         }}
                         onLongPress={drag}
-                        onPress={() => navigation.navigate('event_creation', { item })}
+                        onPress={() => {
+                            console.log("item: dfrdrde")
+                            navigation.navigate('event_creation', { item })
+                        }}
                     >
                         <Text>{item.eventName}</Text>
                     </TouchableOpacity>
                 )}
-                keyExtractor={(item) => item.key}
-                onDragEnd={handleDragEnd}
-                style={{ marginTop: 20, marginBottom: 20 }}
             />
             <Button title="Add Event" onPress={() =>
-                navigation.navigate('event_creation', { name: 'New Event' })
+                navigation.navigate('event_creation')
             } />
             <Text>------</Text>
             <Text>Characters in this Experience</Text>

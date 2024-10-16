@@ -57,19 +57,19 @@ const CreateEventScreen = () => {
 
     useEffect(() => {
         if (route.params) {  // TODO: specify if coming from event creation or character creation
-            event_data = route.params
+            event_data = route.params.item
             setEventName(event_data.eventName)
             setplayerObjective(event_data.playerObjective)
-            setCharacterList(event_data.characterList)
+            // setCharacterList(event_data.characterList)
             setLocation(event_data.eventLocation)
         }
-        console.log(route.params)
+        console.log("route.params: ", route.params)
     }, [route.params])
 
     let text = 'Waiting..';
     if (errorMsg) {
         text = errorMsg;
-        console.log(text)
+        console.log("error: ", text)
     }
     const handleMapPress = e => {
         setSelection(e.nativeEvent.coordinate);
@@ -78,6 +78,16 @@ const CreateEventScreen = () => {
     const handleSetLocation = () => {
         setLocation(marker);
     }
+
+    const addOrSaveEvent = () => {
+        navigation.navigate("experience_creation", {
+            eventName: eventName,
+            playerObjective: playerObjective,
+            characterList: characterList,
+            eventLocation: location,
+        })
+    }
+
 
     const searchPlaces = async () => {
         if (!searchText.trim().length) return
@@ -110,7 +120,6 @@ const CreateEventScreen = () => {
                     Keyboard.dismiss()
                 }
             }
-            console.log(results)
         } catch (e) {
             console.log(e)
         }
@@ -154,12 +163,6 @@ const CreateEventScreen = () => {
         }
     }
 
-    const renderItem = ({ item, drag, isActive }) => (
-        <View style={[styles.listItem, isActive && styles.activeItem]}>
-            <Text onLongPress={drag}>{item.label}</Text>
-        </View>
-    );
-
     return (
         <KeyboardAvoidingView style={styles.container} behavior='padding'>
             <Text>Event Description</Text>
@@ -180,6 +183,9 @@ const CreateEventScreen = () => {
             <View style={styles.listContainer}>
                 <DraggableFlatList
                     data={characterList}
+                    keyExtractor={(item) => item.key}
+                    onDragEnd={handleDragEnd}
+                    style={{ marginTop: 20 }}
                     renderItem={({ item, drag, isActive }) => (
                         <TouchableOpacity
                             style={{
@@ -193,9 +199,6 @@ const CreateEventScreen = () => {
                             <Text>{item.label}</Text>
                         </TouchableOpacity>
                     )}
-                    keyExtractor={(item) => item.key}
-                    onDragEnd={handleDragEnd}
-                    style={{ marginTop: 20 }}
                 />
                 <Button title='Add Character' style={{ display: selection ? 'inline' : 'none' }} onPress={addItemToList} />
                 {/* Add Character button should open a list of characters created in the previous screen, including an option to create one from this screen */}
@@ -261,13 +264,7 @@ const CreateEventScreen = () => {
                     <Button title='Set Location' style={{ display: selection ? 'inline' : 'none' }} onPress={handleSetLocation} />
                 </View>
             </View>
-            <Button title='Add Event' onPress={() => navigation.navigate("experience_creation", {
-                eventName: eventName,
-                playerObjective: playerObjective,
-                characterList: characterList,
-                eventLocation: location,
-
-            })} />
+            <Button title={route.params ? 'Save Event' : 'Add Event'} onPress={addOrSaveEvent} />
         </KeyboardAvoidingView>
     );
 };
