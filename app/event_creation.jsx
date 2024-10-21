@@ -17,6 +17,7 @@ const CreateEventScreen = () => {
     const route = useRoute();
     const navigation = useNavigation();
     const [eventName, setEventName] = useState('');
+    const [eventId, setEventId] = useState(null);
     const [playerObjective, setplayerObjective] = useState('');
     const [characterList, setCharacterList] = useState([
         { id: 1, name: 'Character 1', selected: false },
@@ -57,13 +58,15 @@ const CreateEventScreen = () => {
 
     useEffect(() => {
         if (route.params) {  // TODO: specify if coming from event creation or character creation
-            event_data = route.params.item
+            const event_data = route.params.item
             setEventName(event_data.eventName)
             setplayerObjective(event_data.playerObjective)
             // setCharacterList(event_data.characterList)
             setLocation(event_data.eventLocation)
+            if (event_data.eventId !== null) {
+                setEventId(event_data.eventId)
+            }
         }
-        console.log("route.params: ", route.params)
     }, [route.params])
 
     let text = 'Waiting..';
@@ -85,7 +88,9 @@ const CreateEventScreen = () => {
             playerObjective: playerObjective,
             characterList: characterList,
             eventLocation: location,
+            eventId: eventId
         })
+        setEventId(null)
     }
 
 

@@ -17,6 +17,7 @@ const CreateExperienceScreen = () => {
     const [description, setDescription] = useState('');
     const [coverImage, setCoverImage] = useState(null);
     const [events, setEvents] = useState([]);
+    const [eventId, setEventId] = useState(0);
     const [characters, setCharacters] = useState([
         { id: 1, name: 'Character 1', selected: false },
         { id: 2, name: 'Character 2', selected: false },
@@ -38,11 +39,31 @@ const CreateExperienceScreen = () => {
         });
     };
 
-    // Function to add an event to the reorderable list
-    const addEvent = (event) => {
-        // determine here if edited event or new event?
-        setEvents(new_events => [...new_events, event])
+    useEffect(() => {
+        if (route.params) {  // TODO: specify if coming from event creation or character creation
+            if (route.params.eventId === null) {
+                AddEvent(route.params)
+            } else if (route.params.eventId >= 0) {
+                EditEvent(route.params)
+            }
+        }
+    }, [route.params])
+
+    const EditEvent = (event) => {
+        const index = events.findIndex(e => e.eventId === event.eventId)
+        if (index !== -1) {
+            const updatedEvents = [...events]
+            updatedEvents[index] = event
+            setEvents(updatedEvents)
+        }
     };
+
+    const AddEvent = (event) => {
+        const newId = eventId + 1
+        setEventId(newId)
+        const newEvent = { ...event, eventId: eventId }
+        setEvents(new_events => [...new_events, newEvent])
+    }
 
     async function addExperience() {
         try {
@@ -58,13 +79,6 @@ const CreateExperienceScreen = () => {
             console.error("Error adding document: ", e);
         }
     }
-
-    useEffect(() => {
-        if (route.params) {  // TODO: specify if coming from event creation or character creation
-            addEvent(route.params)
-        }
-        console.log("events: ", events)
-    }, [route.params])
 
     useEffect(() => {
         navigation.setOptions({
@@ -148,7 +162,6 @@ const CreateExperienceScreen = () => {
                         }}
                         onLongPress={drag}
                         onPress={() => {
-                            console.log("item: dfrdrde")
                             navigation.navigate('event_creation', { item })
                         }}
                     >
@@ -179,7 +192,7 @@ const CreateExperienceScreen = () => {
                 )}
                 keyExtractor={(item) => item.id.toString()}
             />
-            <Button title="Add Character" onPress={addEvent} />
+            <Button title="Add Character" />
             <Text>------</Text>
             <Button title="Go to map view" onPress={() => console.log('Go to map view')} />
             <Text>------</Text>
