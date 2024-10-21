@@ -2,8 +2,11 @@ import { View, Text, TextInput, ActivityIndicator, Button, KeyboardAvoidingView 
 import React, { useState } from 'react'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { FIREBASE_AUTH } from '../firebaseConfig'
+import { useNavigation } from '@react-navigation/native';
 
-const login = ({ navigation }) => {
+
+const login = () => {
+    const navigation = useNavigation()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState('')
@@ -13,6 +16,8 @@ const login = ({ navigation }) => {
         setLoading(true)
         try {
             const response = await signInWithEmailAndPassword(auth, email, password)
+            navigation.navigate("index")
+            console.log("login successful")
         } catch (error) {
             console.log(error)
         } finally {
