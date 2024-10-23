@@ -3,13 +3,15 @@ import { View, Text, TextInput, Button, FlatList, TouchableOpacity, ScrollView }
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { launchImageLibrary } from 'expo-image-picker';
-import { collection, addDoc } from 'firebase/firestore'
+import { collection, addDoc, getDocs, query } from 'firebase/firestore'
 import { FIRESTORE } from '@/firebaseConfig';
+import { FIREBASE_AUTH } from '../firebaseConfig'
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
 
 const CreateExperienceScreen = () => {
+    const auth = FIREBASE_AUTH
     const navigation = useNavigation();
     const route = useRoute()
     const [experienceName, setExperienceName] = useState('');
@@ -18,11 +20,7 @@ const CreateExperienceScreen = () => {
     const [coverImage, setCoverImage] = useState(null);
     const [events, setEvents] = useState([]);
     const [eventId, setEventId] = useState(0);
-    const [characters, setCharacters] = useState([
-        { id: 1, name: 'Character 1', selected: false },
-        { id: 2, name: 'Character 2', selected: false },
-        { id: 3, name: 'Character 3', selected: false }
-    ]);
+    const [characters, setCharacters] = useState([]);
 
     // Function to handle image picking
     const pickImage = () => {
@@ -67,13 +65,18 @@ const CreateExperienceScreen = () => {
 
     async function addExperience() {
         try {
-            const docRef = await addDoc(collection(FIRESTORE, "Experiences"), {
+            // const snapshot = await getDocs(query(collection(FIRESTORE, "Experiences")))
+            // console.log("snapshot: ", snapshot)
+            const doc = {
                 name: experienceName,
                 oneliner: oneLiner,
                 description: description,
                 events: events,
-                characters: characters
-            });
+                characters: characters,
+                userId: auth.currentUser ? auth.currentUser.uid : null
+            }
+            console.log("doc: ", doc)
+            const docRef = await addDoc(collection(FIRESTORE, "Experiences"), doc);
             console.log("Document written with ID: ", docRef.id);
         } catch (e) {
             console.error("Error adding document: ", e);
@@ -192,7 +195,10 @@ const CreateExperienceScreen = () => {
                 )}
                 keyExtractor={(item) => item.id.toString()}
             />
-            <Button title="Add Character" />
+            <Button title="Add Character" onPress={() => {
+                navigation.navigate('character_creation')
+            }
+            } />
             <Text>------</Text>
             <Button title="Go to map view" onPress={() => console.log('Go to map view')} />
             <Text>------</Text>
