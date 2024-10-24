@@ -2,13 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Button, FlatList, TouchableOpacity, ScrollView } from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { launchImageLibrary } from 'expo-image-picker';
-import { collection, addDoc, getDocs, query } from 'firebase/firestore'
+import { collection, addDoc } from 'firebase/firestore'
 import { FIRESTORE } from '@/firebaseConfig';
 import { FIREBASE_AUTH } from '../firebaseConfig'
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-
+import CoverImagePicker from './image_picker';
 
 const CreateExperienceScreen = () => {
     const auth = FIREBASE_AUTH
@@ -17,25 +16,9 @@ const CreateExperienceScreen = () => {
     const [experienceName, setExperienceName] = useState('');
     const [oneLiner, setOneLiner] = useState('');
     const [description, setDescription] = useState('');
-    const [coverImage, setCoverImage] = useState(null);
     const [events, setEvents] = useState([]);
     const [eventId, setEventId] = useState(0);
     const [characters, setCharacters] = useState([]);
-
-    // Function to handle image picking
-    const pickImage = () => {
-        const options = {
-            mediaType: 'photo',
-            quality: 1,
-        };
-
-        launchImageLibrary(options, (response) => {
-            if (!response.didCancel && !response.error) {
-                const { uri } = response.assets[0];
-                setCoverImage(uri);
-            }
-        });
-    };
 
     useEffect(() => {
         if (route.params) {  // TODO: specify if coming from event creation or character creation
@@ -112,15 +95,7 @@ const CreateExperienceScreen = () => {
     return (
         <ScrollView style={{ flex: 1, padding: 10, }}>
             <Text>Cover Image</Text>
-            <TouchableOpacity onPress={pickImage} style={{ marginBottom: 10 }}>
-                <View style={{ borderWidth: 1, height: 150, justifyContent: 'center', alignItems: 'center' }}>
-                    {coverImage ? (
-                        <Image source={{ uri: coverImage }} style={{ width: '100%', height: '100%' }} />
-                    ) : (
-                        <Text>Select a cover image</Text>
-                    )}
-                </View>
-            </TouchableOpacity>
+            <CoverImagePicker />
             <Text>Experience Name</Text>
             <TextInput
                 value={experienceName}
@@ -180,6 +155,8 @@ const CreateExperienceScreen = () => {
             <FlatList
                 scrollEnabled={false}
                 data={characters}
+                keyExtractor={(item) => item.id.toString()}
+                style={{ marginTop: 20, marginBottom: 20 }}
                 renderItem={({ item }) => (
                     <TouchableOpacity
                         style={{
@@ -188,17 +165,17 @@ const CreateExperienceScreen = () => {
                             borderWidth: 1,
                             marginBottom: 10,
                         }}
-                        onPress={() => toggleCharacterSelection(item.id)}
+                        onPress={() => {
+                            navigation.navigate('character_creation', { item })
+                        }}
                     >
                         <Text>{item.name}</Text>
                     </TouchableOpacity>
                 )}
-                keyExtractor={(item) => item.id.toString()}
             />
             <Button title="Add Character" onPress={() => {
                 navigation.navigate('character_creation')
-            }
-            } />
+            }} />
             <Text>------</Text>
             <Button title="Go to map view" onPress={() => console.log('Go to map view')} />
             <Text>------</Text>

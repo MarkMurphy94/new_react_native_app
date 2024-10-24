@@ -2,16 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Text, TextInput, ScrollView, View, Image, SafeAreaView, Button } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import CoverImagePicker from './image_picker';
+
 
 const CreateCharacterScreen = () => {
     const navigation = useNavigation();
+    const route = useRoute()
     const [characterName, setcharacterName] = useState('');
     const [briefDescription, setBriefDescription] = useState('');
-    const [description, setDescription] = useState('');
-    const [albums, setAlbums] = useState(null);
-    const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
+    const [LongDescription, setLongDescription] = useState('');
+    const [characterId, setCharacterId] = useState(0);
 
     useEffect(() => {
         navigation.setOptions({
@@ -26,6 +28,27 @@ const CreateCharacterScreen = () => {
         });
     }, []);
 
+    useEffect(() => {
+        if (route.params) {
+            const characterData = route.params.item
+            setCharacterName(characterData.characterName)
+            setBriefDescription(characterData.briefDescription)
+            setLongDescription(characterData.LongDescription)
+            if (characterData.characterId !== null) {
+                setCharacterId(characterData.characterId)
+            }
+        }
+    }, [route.params])
+
+    const addOrSaveCharacter = () => {
+        navigation.navigate("experience_creation", {
+            characterName: characterName,
+            briefDescription: briefDescription,
+            LongDescription: LongDescription,
+            characterId: characterId
+        })
+        setcharacterId(null)
+    }
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
@@ -51,18 +74,18 @@ const CreateCharacterScreen = () => {
                 {/* Longer Description */}
                 <Text>character Longer Description</Text>
                 <TextInput
-                    value={description}
-                    onChangeText={setDescription}
+                    value={LongDescription}
+                    onChangeText={setLongDescription}
                     placeholder="Enter longer description"
                     multiline
                     numberOfLines={4}
                     style={{ borderWidth: 1, marginBottom: 10, textAlignVertical: 'top' }}
                 />
 
-                {/* <Button title="Save character" onPress={addcharacter} /> */}
-                <SafeAreaView>
+                <Button title="Save character" onPress={addOrSaveCharacter} />
+                {/* <SafeAreaView>
                     <Button title="Save Character" />
-                </SafeAreaView>
+                </SafeAreaView> */}
             </ScrollView>
         </GestureHandlerRootView>
     );

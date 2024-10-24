@@ -19,11 +19,7 @@ const CreateEventScreen = () => {
     const [eventName, setEventName] = useState('');
     const [eventId, setEventId] = useState(null);
     const [playerObjective, setplayerObjective] = useState('');
-    const [characterList, setCharacterList] = useState([
-        { id: 1, name: 'Character 1', selected: false },
-        { id: 2, name: 'Character 2', selected: false },
-        { id: 3, name: 'Character 3', selected: false }
-    ]);
+    const [characterList, setCharacterList] = useState([]);
     const [isFocused, setIsFocused] = useState(false);
     const [searchText, setSearchText] = useState('')
     const [errorMsg, setErrorMsg] = useState('')
@@ -57,7 +53,7 @@ const CreateEventScreen = () => {
     }, []);
 
     useEffect(() => {
-        if (route.params) {  // TODO: specify if coming from event creation or character creation
+        if (route.params) {
             const event_data = route.params.item
             setEventName(event_data.eventName)
             setplayerObjective(event_data.playerObjective)
@@ -135,10 +131,11 @@ const CreateEventScreen = () => {
     };
 
     const addItemToList = () => {
-        setCharacterList(prevItems => [
-            ...prevItems,
-            { key: `${prevItems.length + 1}`, label: `Item ${prevItems.length + 1}` }
-        ]);
+        // TODO: get character list
+        // setCharacterList(prevItems => [
+        //     ...prevItems,
+        //     { key: `${prevItems.length + 1}`, label: `Item ${prevItems.length + 1}` }
+        // ]);
     };
 
     const onPlaceSelected = async (data, details) => {
