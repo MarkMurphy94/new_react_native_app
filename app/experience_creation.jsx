@@ -20,16 +20,29 @@ const CreateExperienceScreen = () => {
     const [oneLiner, setOneLiner] = useState('');
     const [description, setDescription] = useState('');
     const [events, setEvents] = useState([]);
-    const [eventId, setEventId] = useState(0);
     const [characters, setCharacters] = useState([]);
+    const [eventId, setEventId] = useState(0);
+    const [characterId, setCharacterId] = useState(0);
 
     useEffect(() => {
-        if (route.params) {  // TODO: specify if coming from event creation or character creation
-            if (route.params.eventId === null) {
-                AddEvent(route.params)
-            } else if (route.params.eventId >= 0) {
-                EditEvent(route.params)
+        if (route.params) {
+            console.log(route.params)
+            if (route.params.hasOwnProperty("eventId")) {
+                if (route.params.eventId === null) {
+                    AddEvent(route.params)
+                } else if (route.params.eventId >= 0) {
+                    EditEvent(route.params)
+                }
             }
+            else if (route.params.hasOwnProperty("characterId")) {
+                if (route.params.characterId === null) {
+                    AddCharacter(route.params)
+                } else if (route.params.eventId >= 0) {
+                    EditCharacter(route.params)
+                }
+            }
+            console.log("events: ", events)
+            console.log("characters: ", characters)
         }
     }, [route.params])
 
@@ -40,13 +53,29 @@ const CreateExperienceScreen = () => {
             updatedEvents[index] = event
             setEvents(updatedEvents)
         }
-    };
+    }
 
     const AddEvent = (event) => {
         const newId = eventId + 1
         setEventId(newId)
         const newEvent = { ...event, eventId: eventId }
         setEvents(new_events => [...new_events, newEvent])
+    }
+
+    const AddCharacter = (character) => {
+        const newId = characterId + 1
+        setCharacterId(newId)
+        const newCharacter = { ...character, characterId: characterId }
+        setCharacters(new_characters => [...new_characters, newCharacter])
+    }
+
+    const EditCharacter = (character) => {
+        const index = characters.findIndex(e => e.characterId === character.characterId)
+        if (index !== -1) {
+            const updatedCharacters = [...characters]
+            updatedCharacters[index] = character
+            setCharacters(updatedCharacters)
+        }
     }
 
     const uploadImage = async (image) => {
@@ -89,7 +118,7 @@ const CreateExperienceScreen = () => {
             }
             console.log("doc: ", doc)
             const docRef = await addDoc(collection(FIRESTORE, "Experiences"), doc);
-            for (const char in characters) {
+            for (const char in characters) { //TODO: fix
                 if (char.characterImage) {
                     uploadImage(char.characterImage)
                 }
@@ -193,7 +222,7 @@ const CreateExperienceScreen = () => {
             <FlatList
                 scrollEnabled={false}
                 data={characters}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item, index) => index.toString()}
                 style={{ marginTop: 20, marginBottom: 20 }}
                 renderItem={({ item }) => (
                     <TouchableOpacity
@@ -207,7 +236,7 @@ const CreateExperienceScreen = () => {
                             navigation.navigate('character_creation', { item })
                         }}
                     >
-                        <Text>{item.name}</Text>
+                        <Text>{item.characterName}</Text>
                     </TouchableOpacity>
                 )}
             />

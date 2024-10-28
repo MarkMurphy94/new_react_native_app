@@ -10,7 +10,7 @@ const CreateCharacterScreen = () => {
     const navigation = useNavigation();
     const route = useRoute()
     const [characterImage, setCharacterImage] = useState(null)
-    const [characterName, setcharacterName] = useState('');
+    const [characterName, setCharacterName] = useState('');
     const [briefDescription, setBriefDescription] = useState('');
     const [LongDescription, setLongDescription] = useState('');
     const [characterId, setCharacterId] = useState(0);
@@ -48,7 +48,7 @@ const CreateCharacterScreen = () => {
             LongDescription: LongDescription,
             characterId: characterId
         })
-        setcharacterId(null)
+        setCharacterId(null)
     }
 
     return (
@@ -62,7 +62,7 @@ const CreateCharacterScreen = () => {
                 <Text>character Name</Text>
                 <TextInput
                     value={characterName}
-                    onChangeText={setcharacterName}
+                    onChangeText={setCharacterName}
                     placeholder="Enter character name"
                     style={{ borderBottomWidth: 1, marginBottom: 10 }}
                 />

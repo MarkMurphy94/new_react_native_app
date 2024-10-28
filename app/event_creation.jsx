@@ -89,7 +89,6 @@ const CreateEventScreen = () => {
         setEventId(null)
     }
 
-
     const searchPlaces = async () => {
         if (!searchText.trim().length) return
         const googleAPIUrl = "https://maps.googleapis.com/maps/api/place/textsearch/json"
