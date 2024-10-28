@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Text, TextInput, ScrollView, View, Image, SafeAreaView, Button } from 'react-native';
-import * as MediaLibrary from 'expo-media-library';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import CoverImagePicker from './image_picker';
+import FlatImagePicker from '../components/image_picker';
 
 
 const CreateCharacterScreen = () => {
     const navigation = useNavigation();
     const route = useRoute()
+    const [characterImage, setCharacterImage] = useState(null)
     const [characterName, setcharacterName] = useState('');
     const [briefDescription, setBriefDescription] = useState('');
     const [LongDescription, setLongDescription] = useState('');
@@ -43,6 +43,7 @@ const CreateCharacterScreen = () => {
     const addOrSaveCharacter = () => {
         navigation.navigate("experience_creation", {
             characterName: characterName,
+            characterImage: characterImage,
             briefDescription: briefDescription,
             LongDescription: LongDescription,
             characterId: characterId
@@ -53,6 +54,10 @@ const CreateCharacterScreen = () => {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <ScrollView contentContainerStyle={{ padding: 20 }}>
+                <FlatImagePicker
+                    onSelectImage={new_image => setCharacterImage(new_image)}
+                    styles={{ borderWidth: 1, width: 100, height: 150, justifyContent: 'center', alignItems: 'center' }}
+                    text="Choose an image for the character" />
                 {/* character Name */}
                 <Text>character Name</Text>
                 <TextInput

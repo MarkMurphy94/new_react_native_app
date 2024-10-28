@@ -1,11 +1,8 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react'
 import * as ImagePicker from 'expo-image-picker';
-import { uploadBytes, ref } from 'firebase/storage';
-import { STORAGE } from '../firebaseConfig';
 
-const FlatImagePicker = ({ styles }) => {
-    const firebase_storage = STORAGE
+const FlatImagePicker = (props) => {
     const [image, setImage] = useState(null);
 
     // Function to handle image picking
@@ -17,22 +14,20 @@ const FlatImagePicker = ({ styles }) => {
             aspect: [4, 3],
             quality: 1,
         });
-
-        console.log(result);
-
         if (!result.canceled) {
             setImage(result.assets[0].uri);
+            props.onSelectImage(image)
         }
     };
 
     return (
         <View>
             <TouchableOpacity onPress={pickImage} style={{ marginBottom: 10 }}>
-                <View style={styles}>
+                <View style={props.styles}>
                     {image ? (
                         <Image source={{ uri: image }} style={{ width: '100%', height: '100%' }} />
                     ) : (
-                        <Text>Select a cover image</Text>
+                        <Text>{props.text}</Text>
                     )}
                 </View>
             </TouchableOpacity>

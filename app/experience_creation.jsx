@@ -3,16 +3,19 @@ import { View, Text, TextInput, Button, FlatList, TouchableOpacity, ScrollView }
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { collection, addDoc } from 'firebase/firestore'
-import { FIRESTORE } from '@/firebaseConfig';
-import { FIREBASE_AUTH } from '../firebaseConfig'
+import { FIRESTORE, FIREBASE_AUTH, STORAGE } from '@/firebaseConfig';
+import { uploadBytes, ref } from 'firebase/storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import CoverImagePicker from './image_picker';
+import FlatImagePicker from '../components/image_picker';
 
 const CreateExperienceScreen = () => {
     const auth = FIREBASE_AUTH
+    const firebase_storage = STORAGE
     const navigation = useNavigation();
     const route = useRoute()
+    const [coverImage, setCoverImage] = useState(null);
+    const [uploading, setUploading] = useState(false);
     const [experienceName, setExperienceName] = useState('');
     const [oneLiner, setOneLiner] = useState('');
     const [description, setDescription] = useState('');
@@ -46,20 +49,52 @@ const CreateExperienceScreen = () => {
         setEvents(new_events => [...new_events, newEvent])
     }
 
+    const uploadImage = async (image) => {
+        if (!image) return;
+
+        setUploading(true);
+        console.log("image: ", image)
+
+        try {
+            // Convert image to blob
+            const response = await fetch(image);
+            const blob = await response.blob();
+
+            // Create a reference to Firebase Storage
+            const filename = `images/${Date.now()}_photo.jpg`;
+            const storageRef = ref(firebase_storage, filename);
+
+            // Upload image
+            const snapshot = await uploadBytes(storageRef, blob);
+            console.log('Uploaded a blob or file!', snapshot);
+            console.log('Image uploaded!');
+        } catch (error) {
+            console.log("Upload Error: ", error);
+        } finally {
+            setUploading(false);
+        }
+    };
+
     async function addExperience() {
         try {
-            // const snapshot = await getDocs(query(collection(FIRESTORE, "Experiences")))
-            // console.log("snapshot: ", snapshot)
+            const current_date = new Date((Date.now())).toString()
             const doc = {
                 name: experienceName,
                 oneliner: oneLiner,
                 description: description,
                 events: events,
                 characters: characters,
-                userId: auth.currentUser ? auth.currentUser.uid : null
+                userId: auth.currentUser ? auth.currentUser.uid : null,
+                createDate: current_date
             }
             console.log("doc: ", doc)
             const docRef = await addDoc(collection(FIRESTORE, "Experiences"), doc);
+            for (const char in characters) {
+                if (char.characterImage) {
+                    uploadImage(char.characterImage)
+                }
+            }
+            uploadImage(coverImage)
             console.log("Document written with ID: ", docRef.id);
         } catch (e) {
             console.error("Error adding document: ", e);
@@ -95,7 +130,10 @@ const CreateExperienceScreen = () => {
     return (
         <ScrollView style={{ flex: 1, padding: 10, }}>
             <Text>Cover Image</Text>
-            <CoverImagePicker />
+            <FlatImagePicker onSelectImage={
+                new_image => setCoverImage(new_image)}
+                styles={{ borderWidth: 1, height: 150, justifyContent: 'center', alignItems: 'center' }}
+                text="Set a Cover Image" />
             <Text>Experience Name</Text>
             <TextInput
                 value={experienceName}
