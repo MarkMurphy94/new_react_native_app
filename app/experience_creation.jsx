@@ -26,7 +26,6 @@ const CreateExperienceScreen = () => {
 
     useEffect(() => {
         if (route.params) {
-            console.log(route.params)
             if (route.params.hasOwnProperty("eventId")) {
                 if (route.params.eventId === null) {
                     AddEvent(route.params)
@@ -37,14 +36,20 @@ const CreateExperienceScreen = () => {
             else if (route.params.hasOwnProperty("characterId")) {
                 if (route.params.characterId === null) {
                     AddCharacter(route.params)
-                } else if (route.params.eventId >= 0) {
+                } else if (route.params.characterId >= 0) {
                     EditCharacter(route.params)
                 }
             }
-            console.log("events: ", events)
-            console.log("characters: ", characters)
         }
     }, [route.params])
+
+
+    const AddEvent = (event) => {
+        const newId = eventId + 1
+        setEventId(newId)
+        const newEvent = { ...event, eventId: eventId }
+        setEvents(new_events => [...new_events, newEvent])
+    }
 
     const EditEvent = (event) => {
         const index = events.findIndex(e => e.eventId === event.eventId)
@@ -53,13 +58,6 @@ const CreateExperienceScreen = () => {
             updatedEvents[index] = event
             setEvents(updatedEvents)
         }
-    }
-
-    const AddEvent = (event) => {
-        const newId = eventId + 1
-        setEventId(newId)
-        const newEvent = { ...event, eventId: eventId }
-        setEvents(new_events => [...new_events, newEvent])
     }
 
     const AddCharacter = (character) => {
@@ -118,9 +116,9 @@ const CreateExperienceScreen = () => {
             }
             console.log("doc: ", doc)
             const docRef = await addDoc(collection(FIRESTORE, "Experiences"), doc);
-            for (const char in characters) { //TODO: fix
-                if (char.characterImage) {
-                    uploadImage(char.characterImage)
+            for (let i = 0; i < characters.length; i++) {
+                if (characters[i].characterImage) {
+                    uploadImage(characters[i].characterImage)
                 }
             }
             uploadImage(coverImage)
@@ -159,8 +157,9 @@ const CreateExperienceScreen = () => {
     return (
         <ScrollView style={{ flex: 1, padding: 10, }}>
             <Text>Cover Image</Text>
-            <FlatImagePicker onSelectImage={
-                new_image => setCoverImage(new_image)}
+            <FlatImagePicker
+                image={coverImage}
+                onSelectImage={new_image => setCoverImage(new_image)}
                 styles={{ borderWidth: 1, height: 150, justifyContent: 'center', alignItems: 'center' }}
                 text="Set a Cover Image" />
             <Text>Experience Name</Text>

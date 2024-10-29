@@ -13,7 +13,7 @@ const CreateCharacterScreen = () => {
     const [characterName, setCharacterName] = useState('');
     const [briefDescription, setBriefDescription] = useState('');
     const [LongDescription, setLongDescription] = useState('');
-    const [characterId, setCharacterId] = useState(0);
+    const [characterId, setCharacterId] = useState(null);
 
     useEffect(() => {
         navigation.setOptions({
@@ -34,6 +34,7 @@ const CreateCharacterScreen = () => {
             setCharacterName(characterData.characterName)
             setBriefDescription(characterData.briefDescription)
             setLongDescription(characterData.LongDescription)
+            setCharacterImage(characterData.characterImage)
             if (characterData.characterId !== null) {
                 setCharacterId(characterData.characterId)
             }
@@ -49,12 +50,14 @@ const CreateCharacterScreen = () => {
             characterId: characterId
         })
         setCharacterId(null)
+        setCharacterImage(null)
     }
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <ScrollView contentContainerStyle={{ padding: 20 }}>
                 <FlatImagePicker
+                    image={characterImage}
                     onSelectImage={new_image => setCharacterImage(new_image)}
                     styles={{ borderWidth: 1, width: 100, height: 150, justifyContent: 'center', alignItems: 'center' }}
                     text="Choose an image for the character" />

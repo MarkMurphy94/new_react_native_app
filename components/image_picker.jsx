@@ -16,7 +16,7 @@ const FlatImagePicker = (props) => {
         });
         if (!result.canceled) {
             setImage(result.assets[0].uri);
-            props.onSelectImage(image)
+            props.onSelectImage(result.assets[0].uri)
         }
     };
 
@@ -24,8 +24,8 @@ const FlatImagePicker = (props) => {
         <View>
             <TouchableOpacity onPress={pickImage} style={{ marginBottom: 10 }}>
                 <View style={props.styles}>
-                    {image ? (
-                        <Image source={{ uri: image }} style={{ width: '100%', height: '100%' }} />
+                    {props.image ? (
+                        <Image source={{ uri: props.image }} style={{ width: '100%', height: '100%' }} />
                     ) : (
                         <Text>{props.text}</Text>
                     )}
