@@ -12,6 +12,7 @@ import FlatImagePicker from '../components/image_picker';
 const CreateExperienceScreen = () => {
     const auth = FIREBASE_AUTH
     const firebase_storage = STORAGE
+    const currentDate = new Date((Date.now())).toString()
     const navigation = useNavigation();
     const route = useRoute()
     const [coverImage, setCoverImage] = useState(null);
@@ -76,7 +77,7 @@ const CreateExperienceScreen = () => {
         }
     }
 
-    const uploadImage = async (image) => {
+    const uploadImage = async (image, category = '', imageName = '') => {
         if (!image) return;
 
         setUploading(true);
@@ -88,7 +89,7 @@ const CreateExperienceScreen = () => {
             const blob = await response.blob();
 
             // Create a reference to Firebase Storage
-            const filename = `images/${Date.now()}_photo.jpg`;
+            const filename = `images/${auth.currentUser.uid}_${experienceName}_${category}_${imageName}_photo.jpg`;
             const storageRef = ref(firebase_storage, filename);
 
             // Upload image
@@ -104,7 +105,17 @@ const CreateExperienceScreen = () => {
 
     async function addExperience() {
         try {
-            const current_date = new Date((Date.now())).toString()
+            for (let i = 0; i < characters.length; i++) {
+                if (characters[i].characterImage) {
+                    uploadImage(characters[i].characterImage, category = 'character', imageName = characters[i].characterName)
+                    const characterImageFile = `images/${auth.currentUser.uid}_${experienceName}_character_${characters[i].characterName}_photo.jpg`
+                    const characterImageFileRef = ref(firebase_storage, characterImageFile)
+                    characters[i].characterImage = characterImageFileRef._location.path
+                }
+            }
+            uploadImage(coverImage, category = 'cover')
+            const coverImageFile = `images/${auth.currentUser.uid}_${experienceName}_cover__photo.jpg`
+            const coverImageFileRef = ref(firebase_storage, coverImageFile)
             const doc = {
                 name: experienceName,
                 oneliner: oneLiner,
@@ -112,16 +123,10 @@ const CreateExperienceScreen = () => {
                 events: events,
                 characters: characters,
                 userId: auth.currentUser ? auth.currentUser.uid : null,
-                createDate: current_date
+                createDate: currentDate,
+                coverImage: coverImageFileRef._location.path
             }
-            console.log("doc: ", doc)
             const docRef = await addDoc(collection(FIRESTORE, "Experiences"), doc);
-            for (let i = 0; i < characters.length; i++) {
-                if (characters[i].characterImage) {
-                    uploadImage(characters[i].characterImage)
-                }
-            }
-            uploadImage(coverImage)
             console.log("Document written with ID: ", docRef.id);
         } catch (e) {
             console.error("Error adding document: ", e);
