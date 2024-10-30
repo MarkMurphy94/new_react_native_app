@@ -26,6 +26,19 @@ const CreateExperienceScreen = () => {
     const [characterId, setCharacterId] = useState(0);
 
     useEffect(() => {
+        navigation.setOptions({
+            headerLeft: () => (
+                <Ionicons
+                    name="arrow-back"
+                    size={24}
+                    color="black"
+                    onPress={() => navigation.goBack()}
+                />
+            ),
+        });
+    }, [navigation])
+
+    useEffect(() => {
         if (route.params) {
             if (route.params.hasOwnProperty("eventId")) {
                 if (route.params.eventId === null) {
@@ -132,19 +145,6 @@ const CreateExperienceScreen = () => {
             console.error("Error adding document: ", e);
         }
     }
-
-    useEffect(() => {
-        navigation.setOptions({
-            headerLeft: () => (
-                <Ionicons
-                    name="arrow-back"
-                    size={24}
-                    color="black"
-                    onPress={() => navigation.goBack()}
-                />
-            ),
-        });
-    }, [navigation])
 
     // Function to handle the drag and drop of events
     const handleDragEnd = ({ data }) => {
