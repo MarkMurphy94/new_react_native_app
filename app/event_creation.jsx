@@ -16,7 +16,7 @@ const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO
 const CreateEventScreen = () => {
     const route = useRoute();
     const navigation = useNavigation();
-    const [eventName, setEventName] = useState('');
+    const [eventTitle, setEventName] = useState('');
     const [eventId, setEventId] = useState(null);
     const [playerObjective, setplayerObjective] = useState('');
     const [characterList, setCharacterList] = useState([]);
@@ -55,7 +55,7 @@ const CreateEventScreen = () => {
     useEffect(() => {
         if (route.params) {
             const event_data = route.params.item
-            setEventName(event_data.eventName)
+            setEventName(event_data.eventTitle)
             setplayerObjective(event_data.playerObjective)
             // setCharacterList(event_data.characterList)
             setLocation(event_data.eventLocation)
@@ -80,7 +80,7 @@ const CreateEventScreen = () => {
 
     const addOrSaveEvent = () => {
         navigation.navigate("experience_creation", {
-            eventName: eventName,
+            eventTitle: eventTitle,
             playerObjective: playerObjective,
             characterList: characterList,
             eventLocation: location,
@@ -168,7 +168,7 @@ const CreateEventScreen = () => {
         <KeyboardAvoidingView style={styles.container} behavior='padding'>
             <Text>Event Description</Text>
             <TextInput
-                value={eventName}
+                value={eventTitle}
                 onChangeText={setEventName}
                 placeholder="Enter a brief description of this event"
                 style={{ borderBottomWidth: 1, marginBottom: 10 }}

@@ -1,39 +1,65 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, FlatList, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TextInput, Button, FlatList, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { collection, addDoc } from 'firebase/firestore'
 import { FIRESTORE, FIREBASE_AUTH, STORAGE } from '@/firebaseConfig';
 import { uploadBytes, ref, getDownloadURL } from 'firebase/storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import FlatImagePicker from '../components/image_picker';
 
 const experience_view = () => {
     const auth = FIREBASE_AUTH
     const firebase_storage = STORAGE
-    const currentDate = new Date((Date.now())).toString()
     const navigation = useNavigation();
     const route = useRoute()
     const [coverImage, setCoverImage] = useState(null);
-    const [uploading, setUploading] = useState(false);
-    const [experienceName, setExperienceName] = useState('');
+    const [experienceTitle, setExperienceTitle] = useState('');
     const [oneLiner, setOneLiner] = useState('');
     const [description, setDescription] = useState('');
     const [events, setEvents] = useState([]);
     const [characters, setCharacters] = useState([]);
-    const [eventId, setEventId] = useState(0);
-    const [characterId, setCharacterId] = useState(0);
 
-    // TODO: useEffect -> get data from firebase + pop
+    useEffect(() => {
+        navigation.setOptions({
+            headerLeft: () => (
+                <Ionicons
+                    name="arrow-back"
+                    size={24}
+                    color="black"
+                    onPress={() => navigation.goBack()}
+                />
+            ),
+        });
+        console.log(route.params)
+    }, [navigation])
+
+    const getExperienceInfo = () => {
+        if (route.params) {
+            const experienceData = route.params.item
+            setExperienceTitle(experienceData.experienceTitle)
+            setOneLiner()
+            setDescription()
+            setCharacters()
+            // setCharacterList(experienceData.characterList)
+        }
+    }
+
+    const getCoverImage = () => {
+
+    }
+
+    // TODO: useEffect(() => {from experience selected in homescreen, get data from firebase + pop}, [navigation?])
 
     return (
         <ScrollView style={{ flex: 1, padding: 10, }}>
             <Text>Cover Image</Text>
-            <FlatImagePicker
-                image={coverImage}
-                onSelectImage={new_image => setCoverImage(new_image)}
-                styles={{ borderWidth: 1, height: 150, justifyContent: 'center', alignItems: 'center' }}
-                text="Set a Cover Image" />
+            {/* <View style={{ flex: 1 }}>
+                {props.image ? (
+                    <Image source={{ uri: props.image }} style={{ width: '60%', height: '60%' }} />
+                ) : (
+                    <Text>{props.text}</Text>
+                )}
+            </View> */}
             <Text>Experience Name</Text>
             <Text>------</Text>
             <Text>Experience One/Two-Liner</Text>
@@ -55,7 +81,7 @@ const experience_view = () => {
                             marginBottom: 10,
                         }}
                         onPress={() => {
-                            navigation.navigate('character_view', { item })
+                            navigation.navigate('character_view', { item }) // TODO: implement character_view
                         }}
                     >
                         <Text>{item.characterName}</Text>
@@ -63,7 +89,9 @@ const experience_view = () => {
                 )}
             />
             <Text>------</Text>
-            <Button title="Schedule Experience" onPress={() => console.log('Go to map view')} />
+            <Button title="Schedule Experience" onPress={() => console.log('Schedule Experience')} />
+            <Text>------</Text>
+            <Button title="Edit Experience" onPress={() => console.log('Edit Experience')} />
             <Text>------</Text>
         </ScrollView>
     )

@@ -17,7 +17,7 @@ const CreateExperienceScreen = () => {
     const route = useRoute()
     const [coverImage, setCoverImage] = useState(null);
     const [uploading, setUploading] = useState(false);
-    const [experienceName, setExperienceName] = useState('');
+    const [experienceTitle, setExperienceName] = useState('');
     const [oneLiner, setOneLiner] = useState('');
     const [description, setDescription] = useState('');
     const [events, setEvents] = useState([]);
@@ -102,7 +102,7 @@ const CreateExperienceScreen = () => {
             const blob = await response.blob();
 
             // Create a reference to Firebase Storage
-            const filename = `images/${auth.currentUser.uid}_${experienceName}_${category}_${imageName}_photo.jpg`;
+            const filename = `images/${auth.currentUser.uid}_${experienceTitle}_${category}_${imageName}_photo.jpg`;
             const storageRef = ref(firebase_storage, filename);
 
             // Upload image
@@ -121,16 +121,16 @@ const CreateExperienceScreen = () => {
             for (let i = 0; i < characters.length; i++) {
                 if (characters[i].characterImage) {
                     uploadImage(characters[i].characterImage, category = 'character', imageName = characters[i].characterName)
-                    const characterImageFile = `images/${auth.currentUser.uid}_${experienceName}_character_${characters[i].characterName}_photo.jpg`
+                    const characterImageFile = `images/${auth.currentUser.uid}_${experienceTitle}_character_${characters[i].characterName}_photo.jpg`
                     const characterImageFileRef = ref(firebase_storage, characterImageFile)
                     characters[i].characterImage = characterImageFileRef._location.path
                 }
             }
             uploadImage(coverImage, category = 'cover')
-            const coverImageFile = `images/${auth.currentUser.uid}_${experienceName}_cover__photo.jpg`
+            const coverImageFile = `images/${auth.currentUser.uid}_${experienceTitle}_cover__photo.jpg`
             const coverImageFileRef = ref(firebase_storage, coverImageFile)
             const doc = {
-                name: experienceName,
+                experienceTitle: experienceTitle,
                 oneliner: oneLiner,
                 description: description,
                 events: events,
@@ -169,7 +169,7 @@ const CreateExperienceScreen = () => {
                 text="Set a Cover Image" />
             <Text>Experience Name</Text>
             <TextInput
-                value={experienceName}
+                value={experienceTitle}
                 onChangeText={setExperienceName}
                 placeholder="Enter experience name"
                 style={{ borderBottomWidth: 1, marginBottom: 10 }}
@@ -214,7 +214,7 @@ const CreateExperienceScreen = () => {
                             navigation.navigate('event_creation', { item })
                         }}
                     >
-                        <Text>{item.eventName}</Text>
+                        <Text>{item.eventTitle}</Text>
                     </TouchableOpacity>
                 )}
             />
