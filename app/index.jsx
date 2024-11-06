@@ -1,10 +1,10 @@
 import { View, Text, TextInput, Button, FlatList, ActivityIndicator, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import React, { useEffect, useState } from 'react'
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { FIREBASE_AUTH, FIRESTORE } from '@/firebaseConfig';
+import { FIREBASE_AUTH, FIRESTORE, STORAGE } from '@/firebaseConfig';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { collection, getDocs } from "firebase/firestore";
-import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import { ref, getDownloadURL } from "firebase/storage";
 import ExperienceCard from '../components/experience_card_view'
 // import { View } from 'react-native-reanimated/lib/typescript/Animated';
 
@@ -12,6 +12,7 @@ const RootLayout = () => {
   const navigation = useNavigation();
   const route = useRoute()
   const db = FIRESTORE
+  const storage = STORAGE
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null)
   const [experience, setExperience] = useState()
@@ -24,39 +25,39 @@ const RootLayout = () => {
     getExperiences()
   }, [])
 
+  // const getImageForExperience = (image) => {
+  //   setExperienceData((experience) => ({
+  //     ...experience,
+  //     ...image
+  //   }))
+  // }
+
   const getExperiences = async () => {
     setLoading(true)
     setExperiences([])
-    const experiencesCollection = await getDocs(collection(db, "Experiences"));
+    const experiencesCollection = await getDocs(collection(db, "ImmersiveExperiences"));
     experiencesCollection.forEach((doc) => {
       setExperiences(experiences => [...experiences, doc.data()])
     });
     console.log("Experiences loaded");
     setLoading(false)
+    // console.log(experiences);
   }
-
-  const onPressCard = (item) => {
-    navigation.navigate('experience_view', { item })
-  }
-
 
   return (
     <View style={{ flex: 1 }}>
       <ScrollView style={{ flex: 1 }}>
-        <Text>weeeeeeeeeeeeeee</Text>
+        <Text>New Experiences!</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scrollView}>
           {experiences.map((item, index) => (
             <ExperienceCard
+              key={index}
               title={item.experienceTitle}
               description={item.description}
-              imageUrl=''
+              imageUrl={item.coverImage}
               navigateTo='experience_view'
+              params={item}
             />
-            // <TouchableOpacity key={index} style={styles.card} onPress={() => onPressCard(item)}>
-            //   {item.coverImage && <Image source={{ uri: item.imageUrl }} style={styles.image} />}
-            //   <Text style={styles.title}>{item.experienceTitle}</Text>
-            //   {item.description && <Text style={styles.description}>{item.description}</Text>}
-            // </TouchableOpacity>
           ))}
         </ScrollView>
       </ScrollView>

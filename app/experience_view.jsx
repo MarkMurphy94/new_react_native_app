@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, FlatList, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, FlatList, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { collection, addDoc } from 'firebase/firestore'
 import { FIRESTORE, FIREBASE_AUTH, STORAGE } from '@/firebaseConfig';
@@ -12,7 +12,7 @@ const experience_view = () => {
     const firebase_storage = STORAGE
     const navigation = useNavigation();
     const route = useRoute()
-    const [coverImage, setCoverImage] = useState(null);
+    const [coverImageUrl, setCoverImageUrl] = useState('');
     const [experienceTitle, setExperienceTitle] = useState('');
     const [oneLiner, setOneLiner] = useState('');
     const [description, setDescription] = useState('');
@@ -30,41 +30,37 @@ const experience_view = () => {
                 />
             ),
         });
-        console.log(route.params)
     }, [navigation])
+
+    useEffect(() => {
+        getExperienceInfo()
+    }, [route.params])
 
     const getExperienceInfo = () => {
         if (route.params) {
-            const experienceData = route.params.item
+            const experienceData = route.params
+            console.log('experienceData: ', experienceData)
             setExperienceTitle(experienceData.experienceTitle)
-            setOneLiner()
-            setDescription()
-            setCharacters()
-            // setCharacterList(experienceData.characterList)
+            setOneLiner(experienceData.oneLiner)
+            setDescription(experienceData.description)
+            setCharacters(experienceData.characters)
+            setCoverImageUrl(experienceData.coverImageUrl)
         }
     }
 
-    const getCoverImage = () => {
-
-    }
-
-    // TODO: useEffect(() => {from experience selected in homescreen, get data from firebase + pop}, [navigation?])
-
     return (
         <ScrollView style={{ flex: 1, padding: 10, }}>
-            <Text>Cover Image</Text>
-            {/* <View style={{ flex: 1 }}>
-                {props.image ? (
-                    <Image source={{ uri: props.image }} style={{ width: '60%', height: '60%' }} />
-                ) : (
-                    <Text>{props.text}</Text>
-                )}
-            </View> */}
-            <Text>Experience Name</Text>
+            <Text>Cover Image below</Text>
+            {coverImageUrl ? (
+                <Image source={{ uri: coverImageUrl }} style={{ width: 70, height: 70 }} />
+            ) : (
+                <Text>No Cover Image</Text>
+            )}
+            <Text>{experienceTitle}</Text>
             <Text>------</Text>
-            <Text>Experience One/Two-Liner</Text>
+            <Text>{oneLiner}</Text>
             <Text>------</Text>
-            <Text>Experience Longer Description</Text>
+            <Text>{description}</Text>
             <Text>------</Text>
             <Text>Characters in this Experience</Text>
             <FlatList // TODO: make this horizontal + enable scroll
@@ -92,7 +88,6 @@ const experience_view = () => {
             <Button title="Schedule Experience" onPress={() => console.log('Schedule Experience')} />
             <Text>------</Text>
             <Button title="Edit Experience" onPress={() => console.log('Edit Experience')} />
-            <Text>------</Text>
         </ScrollView>
     )
 }

@@ -38,7 +38,7 @@ const CreateExperienceScreen = () => {
         });
     }, [navigation])
 
-    useEffect(() => {
+    useEffect(() => {  //TODO: add flag for if existing experience and being edited
         if (route.params) {
             if (route.params.hasOwnProperty("eventId")) {
                 if (route.params.eventId === null) {
@@ -139,7 +139,7 @@ const CreateExperienceScreen = () => {
                 createDate: currentDate,
                 coverImage: coverImageFileRef._location.path
             }
-            const docRef = await addDoc(collection(FIRESTORE, "Experiences"), doc);
+            const docRef = await addDoc(collection(FIRESTORE, "ImmersiveExperiences"), doc);
             console.log("Document written with ID: ", docRef.id);
         } catch (e) {
             console.error("Error adding document: ", e);
