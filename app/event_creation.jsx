@@ -1,24 +1,38 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Text, TextInput, Button, ImageBackground, TouchableOpacity, Keyboard, KeyboardAvoidingView, Dimensions } from 'react-native';
+import { View, StyleSheet, Text, TextInput, Button, ImageBackground, TouchableOpacity, Keyboard, ScrollView, KeyboardAvoidingView, Dimensions } from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { Dropdown } from 'react-native-element-dropdown';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as expoLocation from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePickerComponent from '../components/date_time_picker';
 
 const { width, height } = Dimensions.get("window")
 const ASPECT_RATIO = width / height
 const LATITUDE_DELTA = 0.02
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO
+const EVENTTYPES = [
+    { label: 'Message', value: 'Message' },
+    { label: 'Planned Encounter', value: 'Planned Encounter' },
+    { label: 'Surprise Encounter', value: 'Surprise Encounter' },
+    { label: 'Item Encounter', value: 'Item Encounter' },
+]
+
+// TODO: Event types so far: automated messages, planned encounters, surprise encounters, item encounters
+// DEfault event type implemented here- planned encounter
 
 const CreateEventScreen = () => {
     const route = useRoute();
     const navigation = useNavigation();
-    const [eventTitle, setEventName] = useState('');
+    const [eventTitle, setEventTitle] = useState('');
+    const [eventMessage, setEventMessage] = useState('');
     const [eventId, setEventId] = useState(null);
-    const [playerObjective, setplayerObjective] = useState('');
+    const [eventType, setEventType] = useState(null);
+    const [eventDateTime, setEventDateTime] = useState(new Date(1598051730000));
+    const [playerObjective, setPlayerObjective] = useState('');
     const [characterList, setCharacterList] = useState([]);
     const [isFocused, setIsFocused] = useState(false);
     const [searchText, setSearchText] = useState('')
@@ -55,8 +69,8 @@ const CreateEventScreen = () => {
     useEffect(() => {
         if (route.params) {
             const event_data = route.params.item
-            setEventName(event_data.eventTitle)
-            setplayerObjective(event_data.playerObjective)
+            setEventTitle(event_data.eventTitle)
+            setPlayerObjective(event_data.playerObjective)
             // setCharacterList(event_data.characterList)
             setLocation(event_data.eventLocation)
             if (event_data.eventId !== null) {
@@ -81,6 +95,7 @@ const CreateEventScreen = () => {
     const addOrSaveEvent = () => {
         navigation.navigate("experience_creation", {
             eventTitle: eventTitle,
+            eventDateTime: eventDateTime,
             playerObjective: playerObjective,
             characterList: characterList,
             eventLocation: location,
@@ -165,152 +180,181 @@ const CreateEventScreen = () => {
     }
 
     return (
-        <KeyboardAvoidingView style={styles.container} behavior='padding'>
-            <Text>Event Description</Text>
-            <TextInput
-                value={eventTitle}
-                onChangeText={setEventName}
-                placeholder="Enter a brief description of this event"
-                style={{ borderBottomWidth: 1, marginBottom: 10 }}
-            />
-            <Text>Player Objective</Text>
-            <TextInput
-                value={playerObjective}
-                onChangeText={setplayerObjective}
-                placeholder="Enter an objective for the player"
-                style={{ borderBottomWidth: 1, marginBottom: 10 }}
-            />
-            <Text>Characters in this event</Text>
-            <View style={styles.listContainer}>
-                <DraggableFlatList
-                    data={characterList}
-                    keyExtractor={(item) => item.key}
-                    onDragEnd={handleDragEnd}
-                    style={{ marginTop: 20 }}
-                    renderItem={({ item, drag, isActive }) => (
-                        <TouchableOpacity
-                            style={{
-                                padding: 10,
-                                backgroundColor: isActive ? '#ddd' : '#fff',
-                                borderBottomWidth: 1,
-                                borderColor: '#ccc',
-                            }}
-                            onLongPress={drag}
-                        >
-                            <Text>{item.label}</Text>
-                        </TouchableOpacity>
-                    )}
-                />
-                <Button title='Add Character' style={{ display: selection ? 'inline' : 'none' }} onPress={addItemToList} />
-                {/* Add Character button should open a list of characters created in the previous screen, including an option to create one from this screen */}
-            </View>
-
-            <MapView
-                ref={map}
-                style={{ width: '100%', height: '50%', borderBottomWidth: 1, marginTop: 1, flex: 1 }}
-                provider={PROVIDER_GOOGLE}
-                region={userLocation}
-                onPress={handleMapPress}
-                showsUserLocation={true}>
-                {results.length ? results.map((item, i) => {
-                    const coord = {
-                        latitude: item.geometry.location.lat,
-                        longitude: item.geometry.location.lng,
-                    }
-                    return (
-                        <Marker
-                            key={`search-item-${i}`}
-                            coordinate={coord}
-                            title={item.name}
-                        />
-                    )
-                }) : null}
-                {marker.map((marker, index) => (
-                    <Marker
-                        key={index}
-                        coordinate={{
-                            latitude: marker.latitude,
-                            longitude: marker.longitude
-                        }}
-                        title={marker.title}
-                    >
-                        <Callout>
-                            <View>
-                                <Text>{marker.name}</Text>
-                                <Text>{marker.address}</Text>
-                            </View>
-                        </Callout>
-                    </Marker>
-                ))}
-            </MapView>
-            <View style={styles.container} behavior='padding'>
-                <View style={styles.autocompleteContainer}>
-                    <GooglePlacesAutocomplete
-                        placeholder="Search"
-                        query={{
-                            key: MAPS_API_KEY,
-                            language: "en",
-                        }}
-                        onPress={onPlaceSelected}
-                        styles={{
-                            textInput: isFocused ? styles.textInputFocused : styles.textInput,
-                            container: styles.inputContainer,
-                        }}
-                        textInputProps={{
-                            // value: searchText,
-                            onFocus: () => setIsFocused(true),
-                            onBlur: () => setIsFocused(false),
-                        }}
+        <KeyboardAvoidingView style={styles.container} behavior="padding">
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <View style={styles.card}>
+                    <Text style={styles.label}>Event Description</Text>
+                    <TextInput
+                        value={eventTitle}
+                        onChangeText={setEventTitle}
+                        placeholder="Enter a brief description"
+                        style={styles.textInput}
                     />
-                    <Button title='Set Location' style={{ display: selection ? 'inline' : 'none' }} onPress={handleSetLocation} />
                 </View>
-            </View>
-            <Button title={route.params ? 'Save Event' : 'Add Event'} onPress={addOrSaveEvent} />
+                <View style={styles.card}>
+                    <Text style={styles.label}>Event Time</Text>
+                    <DateTimePickerComponent
+                        onDateSelected={(newDate) => setEventDateTime(newDate)}
+                    />
+                    <Text style={styles.infoText}>Event will occur: {eventDateTime.toLocaleString()}</Text>
+                </View>
+                <View style={styles.card}>
+                    <Text style={styles.label}>Event Type</Text>
+                    <Dropdown
+                        data={EVENTTYPES}
+                        maxHeight={300}
+                        labelField="label"
+                        valueField="value"
+                        placeholder="Select Event Type"
+                        value={eventType}
+                        onChange={(item) => setEventType(item.value)}
+                    />
+                </View>
+                {/* Event Message */}
+                {eventType === 'Message' && (
+                    <View style={styles.card}>
+                        <Text style={styles.label}>Message Text</Text>
+                        <TextInput
+                            value={eventMessage}
+                            onChangeText={setEventMessage}
+                            placeholder="Enter message text"
+                            style={styles.textInput}
+                        />
+                    </View>
+                )}
+
+                {/* Map Section */}
+                {(eventType === 'Planned Encounter' || eventType === 'Item Encounter') && (
+                    <View style={styles.card}>
+                        <Text style={styles.label}>Player Objective</Text>
+                        <TextInput
+                            value={playerObjective}
+                            onChangeText={setPlayerObjective}
+                            placeholder="Enter player's objective"
+                            style={styles.textInput}
+                        />
+                        <MapView
+                            ref={map}
+                            style={styles.map}
+                            provider={PROVIDER_GOOGLE}
+                            region={userLocation}
+                            onPress={handleMapPress}
+                            showsUserLocation={true}
+                        >
+                            {results.map((item, i) => (
+                                <Marker
+                                    key={`search-item-${i}`}
+                                    coordinate={{
+                                        latitude: item.geometry.location.lat,
+                                        longitude: item.geometry.location.lng,
+                                    }}
+                                    title={item.name}
+                                />
+                            ))}
+                            {marker.map((m, i) => (
+                                <Marker
+                                    key={i}
+                                    coordinate={{
+                                        latitude: m.latitude,
+                                        longitude: m.longitude,
+                                    }}
+                                    title={m.title}
+                                >
+                                    <Callout>
+                                        <View>
+                                            <Text>{m.name}</Text>
+                                            <Text>{m.address}</Text>
+                                        </View>
+                                    </Callout>
+                                </Marker>
+                            ))}
+                        </MapView>
+                        <GooglePlacesAutocomplete
+                            placeholder="Search for a location"
+                            query={{
+                                key: MAPS_API_KEY,
+                                language: 'en',
+                            }}
+                            onPress={onPlaceSelected}
+                            styles={{
+                                textInput: isFocused ? styles.textInputFocused : styles.textInput,
+                                container: styles.inputContainer,
+                            }}
+                            textInputProps={{
+                                onFocus: () => setIsFocused(true),
+                                onBlur: () => setIsFocused(false),
+                            }}
+                        />
+                        <TouchableOpacity
+                            onPress={handleSetLocation}
+                            style={styles.button}
+                        >
+                            <Text style={styles.buttonText}>Set Location</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+
+                {/* Characters Section */}
+                {(eventType === 'Planned Encounter' || eventType === 'Surprise Encounter') && (
+                    <View style={styles.card}>
+                        <Text style={styles.label}>Characters in Event</Text>
+                        <DraggableFlatList
+                            data={characterList}
+                            keyExtractor={(item) => item.key}
+                            onDragEnd={handleDragEnd}
+                            renderItem={({ item, drag, isActive }) => (
+                                <TouchableOpacity
+                                    style={[
+                                        styles.listItem,
+                                        { backgroundColor: isActive ? '#ddd' : '#fff' },
+                                    ]}
+                                    onLongPress={drag}
+                                >
+                                    <Text>{item.label}</Text>
+                                </TouchableOpacity>
+                            )}
+                        />
+                        <TouchableOpacity
+                            onPress={addItemToList}
+                            style={styles.button}
+                        >
+                            <Text style={styles.buttonText}>Add Character</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+
+                {/* Submit Button */}
+                <TouchableOpacity onPress={addOrSaveEvent} style={styles.submitButton}>
+                    <Text style={styles.submitButtonText}>
+                        {route.params ? 'Save Event' : 'Add Event'}
+                    </Text>
+                </TouchableOpacity>
+            </ScrollView>
         </KeyboardAvoidingView>
     );
 };
 
+export default CreateEventScreen;
+;
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 10,
-        // backgroundColor: "darkblue",
-        // paddingTop: 60,
-        // paddingBottom: 25,
-        // alignItems: "center",
-        // borderBottomLeftRadius: 55,
-        // borderBottomRightRadius: 55,
-        // position: "absolute",
-        // // shadowColor: "#000",
-        // shadowOffset: { width: 0, height: 2 },
-        // shadowOpacity: 0.1,
-        // shadowRadius: 10,
-        // elevation: 5,
-        // marginBottom: 50,
+        backgroundColor: '#f9f9f9',
     },
     scrollContainer: {
-        flexGrow: 1,
-        padding: 10,
+        padding: 20,
     },
-    input: {
-        borderWidth: 1,
-        padding: 10,
-        marginVertical: 5,
-        borderRadius: 5,
-    },
-    listContainer: {
-        flexGrow: 0, // Ensure the list resizes dynamically
-        marginVertical: 10,
-        padding: 10
-    },
-    listItem: {
+    card: {
+        flex: 1,
+        backgroundColor: '#fff',
         padding: 15,
-        marginVertical: 5,
-        backgroundColor: '#f0f0f0',
-        borderRadius: 5,
-    },
-    activeItem: {
-        backgroundColor: '#ccc',
+        marginBottom: 20,
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 3,
     },
     autocompleteContainer: {
         position: 'absolute',
@@ -320,12 +364,55 @@ const styles = StyleSheet.create({
         flex: 1
         // zIndex: 1000,
     },
+    label: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 8,
+    },
+    textInput: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 5,
+        padding: 10,
+        marginBottom: 10,
+        backgroundColor: '#fff',
+    },
+    infoText: {
+        fontSize: 14,
+        color: '#666',
+    },
     map: {
-        flex: 1,
+        height: 200,
+        marginVertical: 10,
+        borderRadius: 10,
+    },
+    button: {
+        backgroundColor: '#4CAF50',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+    },
+    buttonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    listItem: {
+        padding: 10,
+        borderBottomWidth: 1,
+        borderColor: '#ccc',
+    },
+    submitButton: {
+        backgroundColor: '#007BFF',
+        padding: 15,
+        borderRadius: 10,
+        alignItems: 'center',
         marginTop: 20,
-    }
+    },
+    submitButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
+    },
 });
-
-export default CreateEventScreen;
 
 

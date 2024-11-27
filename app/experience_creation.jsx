@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Button, FlatList, TouchableOpacity, ScrollView } from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { collection, addDoc } from 'firebase/firestore'
+import { collection, addDoc, serverTimestamp, FieldValue } from 'firebase/firestore'
 import { FIRESTORE, FIREBASE_AUTH, STORAGE } from '@/firebaseConfig';
 import { uploadBytes, ref } from 'firebase/storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -12,7 +12,7 @@ import FlatImagePicker from '../components/image_picker';
 const CreateExperienceScreen = () => {
     const auth = FIREBASE_AUTH
     const firebase_storage = STORAGE
-    const currentDate = new Date((Date.now())).toString()
+    const currentDate = new Date((Date.now()))  //.toString()
     const navigation = useNavigation();
     const route = useRoute()
     const [coverImage, setCoverImage] = useState(null);
@@ -136,7 +136,7 @@ const CreateExperienceScreen = () => {
                 events: events,
                 characters: characters,
                 userId: auth.currentUser ? auth.currentUser.uid : null,
-                createDate: currentDate,
+                createDate: serverTimestamp(), // currentDate,
                 coverImage: coverImageFileRef._location.path
             }
             const docRef = await addDoc(collection(FIRESTORE, "ImmersiveExperiences"), doc);

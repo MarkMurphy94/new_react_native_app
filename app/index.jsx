@@ -6,7 +6,9 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { collection, getDocs } from "firebase/firestore";
 import { ref, getDownloadURL } from "firebase/storage";
 import ExperienceCard from '../components/experience_card_view'
+import 'react-native-get-random-values';
 // import { View } from 'react-native-reanimated/lib/typescript/Animated';
+
 
 const RootLayout = () => {
   const navigation = useNavigation();

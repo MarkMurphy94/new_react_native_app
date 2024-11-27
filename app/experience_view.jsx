@@ -18,7 +18,6 @@ const experience_view = () => {
     const [description, setDescription] = useState('');
     const [events, setEvents] = useState([]);
     const [characters, setCharacters] = useState([]);
-
     useEffect(() => {
         navigation.setOptions({
             headerLeft: () => (
@@ -87,6 +86,7 @@ const experience_view = () => {
             <Text>------</Text>
             <Button title="Schedule Experience" onPress={() => console.log('Schedule Experience')} />
             <Text>------</Text>
+            {/* TODO: Edit button onlly visible for experience creator */}
             <Button title="Edit Experience" onPress={() => console.log('Edit Experience')} />
         </ScrollView>
     )
