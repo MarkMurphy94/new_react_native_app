@@ -192,13 +192,6 @@ const CreateEventScreen = () => {
                     />
                 </View>
                 <View style={styles.card}>
-                    <Text style={styles.label}>Event Time</Text>
-                    <DateTimePickerComponent
-                        onDateSelected={(newDate) => setEventDateTime(newDate)}
-                    />
-                    <Text style={styles.infoText}>Event will occur: {eventDateTime.toLocaleString()}</Text>
-                </View>
-                <View style={styles.card}>
                     <Text style={styles.label}>Event Type</Text>
                     <Dropdown
                         data={EVENTTYPES}
