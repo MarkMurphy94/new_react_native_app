@@ -3,4 +3,14 @@ const { getDefaultConfig } = require('@expo/metro-config');
 const defaultConfig = getDefaultConfig(__dirname);
 defaultConfig.resolver.sourceExts.push('cjs');
 
-module.exports = defaultConfig;
+module.exports = {
+    ...defaultConfig,
+    resolver: {
+        ...defaultConfig.resolver,
+        alias: {
+            '@': './', // This maps `@` to the root directory
+        },
+    },
+};
+
+// module.exports = defaultConfig;

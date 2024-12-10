@@ -15,7 +15,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "googleServicesFile": "./GoogleService-info.plist"
+      "googleServicesFile": "./GoogleService-info.plist",
+      "bundleIdentifier": "com.imers.io"
     },
     "android": {
       "googleServicesFile": "google-services.json",
@@ -23,7 +24,10 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.imers.io"
+      "package": "com.imers.io",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -51,6 +55,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "810d9a03-dfc1-4c8a-999e-96fa6d6c653d"
+      }
     }
   }
 }

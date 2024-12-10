@@ -6,7 +6,7 @@ import { Drawer } from "expo-router/drawer"
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { FIREBASE_AUTH } from '@/firebaseConfig';
+import { FIREBASE_AUTH } from '../firebaseConfig'
 import { Button, View } from "react-native";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -24,7 +24,7 @@ const RootLayout = () => {
     "Poppins-SemiBold": require("../assets/fonts/Poppins-SemiBold.ttf"),
     "Poppins-Thin": require("../assets/fonts/Poppins-Thin.ttf"),
   });
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState(null)
 
   useEffect(() => {
     onAuthStateChanged(FIREBASE_AUTH, (user) => {
