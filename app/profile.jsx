@@ -1,6 +1,6 @@
 import { View, Text, Button } from 'react-native'
 import React from 'react'
-import { FIREBASE_AUTH } from '@/firebaseConfig'
+import { FIREBASE_AUTH } from '../firebaseConfig'
 
 const profile = ({ navigation }) => {
     return (

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Button, FlatList, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { collection, addDoc } from 'firebase/firestore'
+import { collection, addDoc, doc } from 'firebase/firestore'
 import { FIRESTORE, FIREBASE_AUTH, STORAGE } from '@/firebaseConfig';
 import { uploadBytes, ref, getDownloadURL } from 'firebase/storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -17,6 +17,7 @@ const experience_view = () => {
     const [experienceTitle, setExperienceTitle] = useState('');
     const [experienceDateTime, setExperienceDateTime] = useState(new Date(1598051730000));
     const [oneLiner, setOneLiner] = useState('');
+    const [experienceRef, setExperienceRef] = useState(null);
     const [description, setDescription] = useState('');
     const [events, setEvents] = useState([]);
     const [characters, setCharacters] = useState([]);
@@ -52,17 +53,17 @@ const experience_view = () => {
 
     const scheduleExperience = async () => {
         try {
-            const doc = {
+            const new_doc = {
+                experienceRef: route.params.experienceRef,
                 experienceTitle: experienceTitle,
                 description: description,
                 eventsQueue: events,
                 characters: characters,
-                players: [auth.currentUser ? auth.currentUser.uid : null],
-                startDateTime: experienceDateTime
-                // createDate: serverTimestamp(), // currentDate,
-                // coverImage: coverImageFileRef._location.path
+                players: [auth.currentUser.uid],
+                startDateTime: experienceDateTime,
+                isActive: false
             }
-            const docRef = await addDoc(collection(FIRESTORE, "ExperienceCalendar"), doc);
+            const docRef = await addDoc(collection(FIRESTORE, "ExperienceCalendar"), new_doc);
             console.log("Document written with ID: ", docRef.id);
         } catch (e) {
             console.error("Error adding document: ", e);
@@ -123,6 +124,9 @@ const experience_view = () => {
                     title="Schedule Experience"
                     onPress={scheduleExperience}
                 />
+                <Button title="Run Experience" onPress={() =>
+                    navigation.navigate('running_experience')
+                } />
             </View>
             <View style={styles.section}>
                 <Button

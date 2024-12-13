@@ -39,11 +39,14 @@ const RootLayout = () => {
     setExperiences([])
     const experiencesCollection = await getDocs(collection(db, "ImmersiveExperiences"));
     experiencesCollection.forEach((doc) => {
-      setExperiences(experiences => [...experiences, doc.data()])
+      const experience = {
+        ...doc.data(),
+        experienceRef: doc.ref
+      };
+      setExperiences(experiences => [...experiences, experience])
     });
     console.log("Experiences loaded");
     setLoading(false)
-    // console.log(experiences);
   }
 
   return (
