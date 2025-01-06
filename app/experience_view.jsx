@@ -120,6 +120,7 @@ const experience_view = () => {
                     onDateSelected={(newDate) => setExperienceDateTime(newDate)}
                 />
                 <Text style={styles.infoText}>Event will occur: {experienceDateTime.toLocaleString()}</Text>
+                {/* TODO: block user from scheduling simultaneous experiences or experiences that otherwise may overlap */}
                 <Button
                     title="Schedule Experience"
                     onPress={scheduleExperience}

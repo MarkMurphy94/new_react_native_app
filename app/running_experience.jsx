@@ -107,7 +107,7 @@ const RunningExperience = () => {
                         const { latitude, longitude } = location.coords;
                         const geoPoint = new GeoPoint(latitude, longitude);
                         setUserLocation(geoPoint);
-                        uploadToFirebase()
+                        updateLocationInFirebase()
                     }
                 );
             };
@@ -140,6 +140,7 @@ const RunningExperience = () => {
             if (querySnapshot.empty) {
                 console.log("No live experiences at this time.");
                 setActiveExperienceRef(null);
+                // TODO: delete LiveUsers doc if one exists
                 return;
             }
 
@@ -154,7 +155,7 @@ const RunningExperience = () => {
         }
     };
 
-    async function uploadToFirebase() {
+    async function updateLocationInFirebase() {
         const newDoc = {
             userId: auth.currentUser ? auth.currentUser.uid : null,
             location: userLocation,
@@ -183,22 +184,28 @@ const RunningExperience = () => {
                     updatedAt: serverTimestamp() // Optional: Add a timestamp to track updates
                 });
 
-                console.log("Document updated with ID: ", docRef.id);
+                console.log("Updated live user with ID: ", docRef.id);
             } else {
                 // If no matching document exists, create a new one
                 const docRef = await addDoc(liveUsersCollection, newDoc);
-                console.log("New document written with ID: ", docRef.id);
+                console.log("New live user with ID: ", docRef.id);
             }
         } catch (e) {
             console.error("Error handling document: ", e);
         }
     }
 
+    const stopExperience = async () => {
+        // mark experience in ExperienceCalendar as inactive
+        // delete LiveUsers entry for user
+        // call deactivateExperience cloud function to do this?
+    }
 
     return (
         <View>
             <Text>Your scheduled experience is active! Go to your next encounter!</Text>
             <Text>Your real-time location is tracked by the app while the experience is active</Text>
+            <Button title="Stop Experience" />
             {/* <Button title="location access" onPress={''} /> */}
             {/* <Text>Event will occur: {userLocation.toLocaleString()}</Text> */}
         </View>
